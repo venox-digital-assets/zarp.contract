@@ -1,0 +1,7 @@
+**/.build
+**/build
+**/.flatten
+**/cache
+**/node_modules
+**/**error.log
+**.env

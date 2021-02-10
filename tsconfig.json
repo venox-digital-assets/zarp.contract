@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "lib": ["es2019"],
+    "outDir": "./build/",
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "target": "es2019",
+    "allowJs": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "sourceMap": true,
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["mocha", "node"],
+    "strict": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["./contracts/**.ts", "./test/**.ts"],
+  "exclude": ["./build", "**/node_modules/**"]
+}

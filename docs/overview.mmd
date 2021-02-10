@@ -1,0 +1,26 @@
+sequenceDiagram
+  participant ZARP Owner EthAcc
+  participant ZARP Cashout EthAcc
+  participant ZARP ContractAcc
+  participant ZARP BankAcc
+  participant Exchange EthAcc
+  participant Exchange BankAcc
+  participant Alice EthAcc
+  participant Bob EthAcc
+  participant Bob BankAcc
+
+  Note over ZARP Owner EthAcc, Bob: Overview of key ZARP flows | V0.1
+
+  Exchange BankAcc->>ZARP BankAcc: Exchange Sends 100,000 ZAR to be minted into ZARP
+  ZARP Owner EthAcc-->>ZARP ContractAcc: Zarp Mints 100,000 ZARP on Contract account
+  ZARP ContractAcc-->>Exchange EthAcc: Contract sens ZARP directly to Exchange EthAcc
+  Exchange EthAcc-->>Exchange EthAcc: Exchange list 100,000 available stock for trade direcly from them
+  Alice EthAcc->>Exchange EthAcc: Alice Buys 500 ZARP from Exchange
+  Exchange EthAcc-->>Alice EthAcc: Exchange sends 500 ZARP to Alice
+  Alice EthAcc->>Bob EthAcc: Alice sends 250 ZARP directly to Bob
+  Bob EthAcc->>Exchange EthAcc: Bob lists 250 ZARP on exchange and sells it back for ZAR
+  Exchange EthAcc->>Exchange EthAcc: Exchange sells to another user (not shown here)
+  Exchange BankAcc-->>Bob BankAcc: Exchange pays 250 ZAR to Bob
+  Exchange EthAcc->>ZARP Cashout EthAcc: Exchange wants to cash out 50,000 ZARP
+  ZARP Cashout EthAcc-->>ZARP ContractAcc: ZARP burns 50,000 ZARP tokens
+  ZARP BankAcc-->>Exchange BankAcc: ZARP sends 50,000 ZAR to exchange bank account
