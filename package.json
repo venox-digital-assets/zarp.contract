@@ -9,7 +9,9 @@
     "truffle:gc": "truffle console --network ganacheCli",
     "truffle:gd": "truffle console --network ganacheDesktop",
     "truffle": "truffle develop",
-    "docs": "yarn glob-run yarn mmdc -H 1 -w 2048 -i docs/**/*.mmd -o docs/*.png "
+    "docs": "yarn glob-run yarn mmdc -H 1 -w 2048 -i docs/**/*.mmd -o docs/*.png ",
+    "lint": "yarn solhint ./contracts/**/*.sol",
+    "prettier": "prettier --write 'contracts/**/*.sol'"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.13",
@@ -33,6 +35,7 @@
     "prettier": "^2.2.1",
     "prettier-plugin-solidity": "^1.0.0-beta.4",
     "solc": "0.7.6",
+    "solhint": "^3.3.2",
     "truffle": "^5.1.65",
     "truffle-wallet-provider": "^0.0.5",
     "ts-node": "^9.1.1",

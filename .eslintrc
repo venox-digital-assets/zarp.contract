@@ -1,5 +1,6 @@
 {
   "extends": [
+    "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "prettier/@typescript-eslint",
     "plugin:prettier/recommended"
@@ -15,7 +16,7 @@
     }
   },
   "plugins": ["prettier", "@typescript-eslint"],
-  "ignorePatterns": ["**/generated/*.ts"],
+  "ignorePatterns": ["**/generated/*.ts", "*.js"],
   "rules": {
     "prettier/prettier": [
       "error",

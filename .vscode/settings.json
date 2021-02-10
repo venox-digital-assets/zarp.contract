@@ -7,11 +7,6 @@
     "statusBar.background": "#239c3e",
     "statusBar.foreground": "#000000"
   },
-  "files.exclude": {
-    "**/node_modules": true,
-    "**/.aws": true,
-    ".serverless": true
-  },
   "files.eol": "\n",
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
@@ -20,17 +15,15 @@
   "editor.formatOnPaste": true,
   "eslint.packageManager": "yarn",
   "editor.formatOnSave": true,
-  "[javascript]": {
-    "editor.formatOnSave": false
-  },
   "[typescript]": {
     "editor.formatOnSave": false
   },
-  "eslint.validate": ["javascript", "typescript"],
+  "eslint.validate": ["typescript"],
   "eslint.alwaysShowStatus": true,
   "breadcrumbs.enabled": true,
   "editor.renderControlCharacters": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
-  }
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
