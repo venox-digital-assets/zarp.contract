@@ -164,6 +164,8 @@ contract ZARP is ERC20, Ownable, AccessControl, ERC20Burnable {
     require(hasRole(MINTER_ROLE, account) == false, "MINTER_ROLE role not allowed to be verified");
     require(hasRole(BURNER_ROLE, account) == false, "BURNER_ROLE role not allowed to be verified");
     require(hasRole(VERIFIER_ROLE, account) == false, "VERIFIER_ROLE role not allowed to be verified");
+    require(hasRole(DEFAULT_ADMIN_ROLE, account) == false, "DEFAULT_ADMIN_ROLE role not allowed to be verified");
+    require(owner() != account, "Owner not allowed to be verified");
     _verified[account] = true;
     emit AddressVerificationChanged(account, _msgSender(), true);
   } 
