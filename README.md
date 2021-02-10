@@ -5,7 +5,7 @@
 ZARP is a cryptocurrency stablecoin built on the Ethereum blockchain, using the ERC20 token standard, and pegged to the price of the South African Rand (ZAR). 1 ZARP equals 1 ZAR, stored in our audited treasury account.
 
 - A true stablecoin, backed 1:1 by ZAR holdings
-- Frequently audited by independent third parties 
+- Frequently audited by independent third parties
 - Minted and Burned only to/from verified accounts
 
 ## Overview
