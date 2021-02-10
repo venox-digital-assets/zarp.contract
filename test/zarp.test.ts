@@ -110,7 +110,19 @@ describe('ZARP Access Control Tests', () => {
     expect(await contract.isVerified(verifier.address)).to.equal(false);
   });
 
-  it("Non Or can't assign roles", async () => {
+  it('DEFAULT_ADMIN_ROLE not allowed to be verified', async () => {
+    await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), unverified.address);
+    await expect(contractAsVerifier.verify(unverified.address)).to.be.revertedWith('DEFAULT_ADMIN_ROLE role not allowed to be verified');
+    expect(await contract.isVerified(unverified.address)).to.equal(false);
+  });
+
+  it('Owner not allowed to be verified', async () => {
+    await contract.transferOwnership(unverified.address);
+    await expect(contractAsVerifier.verify(unverified.address)).to.be.revertedWith('Owner not allowed to be verified');
+    expect(await contract.isVerified(unverified.address)).to.equal(false);
+  });
+
+  it("Non-DEFAULT_ADMIN_ROLE can't assign roles", async () => {
     await expect(contractAsMinter.grantRole(await contract.MINTER_ROLE(), fraudster.address)).to.be.revertedWith(
       'sender must be an admin to grant',
     );
