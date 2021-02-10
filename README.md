@@ -2,10 +2,10 @@
 
 [![Main Status](https://github.com/randreserve/ZARP/workflows/main/badge.svg)](https://github.com/randreserve/ZARP/actions)
 
-An ERC20 token pegged to ZAR
+ZARP is a cryptocurrency stablecoin built on the Ethereum blockchain, using the ERC20 token standard, and pegged to the price of the South African Rand (ZAR). 1 ZARP equals 1 ZAR, stored in our audited treasury account.
 
-- Backed 1:1 by real ZAR holdings
-- Frequently audited
+- A true stablecoin, backed 1:1 by ZAR holdings
+- Frequently audited by independent third parties 
 - Minted and Burned only to/from verified accounts
 
 ## Overview
