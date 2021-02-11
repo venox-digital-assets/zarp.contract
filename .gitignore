@@ -1,4 +1,4 @@
-**/.build
+**/build
 **/cache
 **/node_modules
 **/**error.log
