@@ -28,9 +28,12 @@ await contract.grantRole(await contract.MINTER_ROLE(), accounts[1])
 await contract.grantRole(await contract.BURNER_ROLE(), accounts[1])
 await contract.grantRole(await contract.VERIFIER_ROLE(), accounts[2])
 await contract.verify(accounts[3], {from: accounts[2]})
-await contract.mint(accounts[3], 50000000, {from: accounts[1]})
-(await contract.balanceOf(accounts[2])).toNumber()
-await contract.transfer(accounts[3], 9999, {from: accounts[2]})
+await contract.mint(accounts[3], 100000000, {from: accounts[1]})
+(await contract.balanceOf(accounts[3])).toNumber()
+await contract.transfer(accounts[1], 20000000, {from: accounts[3]})
+await contract.burn(20000000, {from: accounts[1]})
+(await contract.totalSupply()).toNumber()
+
 ```
 
 Requirements for .env:
