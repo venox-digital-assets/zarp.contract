@@ -10,19 +10,20 @@ Brief list of principles, and impact on tech:
 
 ## Running the project
 
-```sh
-# For local chains run truffle develop, truffle ganache-cli, or truffle ganache-desktop
+```js
+// For local chains run truffle develop, truffle ganache-cli, or truffle ganache-desktop
 yarn truffle
 yarn truffle:gc
 yarn truffle:gd
-# For ropsten, have .env setup and run
+// For ropsten, have .env setup and run
 yarn truffle:ropsten
-# Migrate (if needed)
-migrate
+
+// Examples
+migrate // Migrate (if needed)
 # Test
 let contract = await ZARP.deployed()
-await contract.name()
-contract.address
+await contract.name() // Query name from contract  (verifies that migration worked correctly)
+contract.address // Can then add address to e.g. metamask accounts
 let accounts = await web3.eth.getAccounts()
 await contract.grantRole(await contract.MINTER_ROLE(), accounts[1])
 await contract.grantRole(await contract.BURNER_ROLE(), accounts[1])
@@ -30,8 +31,9 @@ await contract.grantRole(await contract.VERIFIER_ROLE(), accounts[2])
 await contract.verify(accounts[3], {from: accounts[2]})
 await contract.mint(accounts[3], 100000000, {from: accounts[1]})
 (await contract.balanceOf(accounts[3])).toNumber()
-await contract.transfer(accounts[1], 20000000, {from: accounts[3]})
-await contract.burn(20000000, {from: accounts[1]})
+await contract.transfer(accounts[4], 20000000, {from: accounts[3]})
+await contract.transfer(accounts[1], 30000000, {from: accounts[3]})
+await contract.burn(30000000, {from: accounts[1]})
 (await contract.totalSupply()).toNumber()
 
 ```
