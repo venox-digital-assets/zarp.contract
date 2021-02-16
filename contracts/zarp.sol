@@ -71,7 +71,7 @@ contract ZARP is ERC20, Ownable, AccessControl, ERC20Burnable {
    *
    * - the caller must have allowance for ``accounts``'s tokens of at least
    * `amount`.
-   * - AccessControl: requires `MINTER_ROLE`
+   * - AccessControl: requires `BURNER_ROLE`
    */
   function burnFrom(address account, uint256 amount) public override onlyBurnerRole {
     super.burnFrom(account, amount);
