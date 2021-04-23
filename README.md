@@ -8,10 +8,6 @@ ZARP is a cryptocurrency stablecoin built on the Ethereum blockchain, using the 
 - Frequently audited by independent third parties
 - Minted and Burned only to/from verified accounts
 
-## Overview
-
-![Overview Flow Diagram](./docs/overview.png)
-
 ## Contribute
 
 Check out our [contribution guide](CONTRIBUTING.md)!
