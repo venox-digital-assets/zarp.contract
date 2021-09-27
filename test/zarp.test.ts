@@ -99,6 +99,34 @@ describe('ZARP Access Control Tests', () => {
   it("Non-DEFAULT_ADMIN_ROLE can't assign roles", async () => {
     await expect(contractAsMinter.grantRole(await contract.MINTER_ROLE(), fraudster.address)).to.be.reverted;
   });
+
+  it('non-DEFAULT_ADMIN_ROLE cant pause contract', async () => {
+    expect(await contract.paused()).to.equal(false);
+    await expect(contractAsMinter.pause()).to.be.reverted;
+    expect(await contract.paused()).to.equal(false);
+  });
+
+  it('DEFAULT_ADMIN_ROLE can pause contract', async () => {
+    expect(await contract.paused()).to.equal(false);
+    await contract.pause();
+    expect(await contract.paused()).to.equal(true);
+  });
+
+  it('non-DEFAULT_ADMIN_ROLE cant unpause contract', async () => {
+    expect(await contract.paused()).to.equal(false);
+    await contract.pause();
+    expect(await contract.paused()).to.equal(true);
+    await expect(contractAsMinter.unpause()).to.be.reverted;
+    expect(await contract.paused()).to.equal(true);
+  });
+
+  it('DEFAULT_ADMIN_ROLE can unpause contract', async () => {
+    expect(await contract.paused()).to.equal(false);
+    await contract.pause();
+    expect(await contract.paused()).to.equal(true);
+    await contract.unpause();
+    expect(await contract.paused()).to.equal(false);
+  });
 });
 
 describe('ZARP Core Tests', () => {
@@ -173,7 +201,7 @@ describe('ZARP Core Tests', () => {
     await expect(contract.burn(10)).to.be.reverted;
   });
 
-  it('Allows creating a customer-specific burn address', async () => {
+  it('Allows creating a customer-specific burn address and burns tokens', async () => {
     await contractAsMinter.mint(verified.address, 20);
     await contract.grantRole(await contract.BURNER_ROLE(), burner.address);
     await expect(contractAsBurner.burn(10)).to.be.reverted;
@@ -193,5 +221,36 @@ describe('ZARP Core Tests', () => {
     await expect(contractAsVerifier.removeVerification(verified.address))
       .to.emit(contract, 'AddressVerificationChanged')
       .withArgs(verified.address, verifier.address, false);
+  });
+
+  it('Transfer reverts on paused contract', async () => {
+    await contractAsMinter.mint(verified.address, 9);
+    await contract.pause();
+    await expect(contractAsVerified.transfer(unverified.address, 9)).to.be.reverted;
+    expect(await contract.balanceOf(verified.address)).to.equal(9);
+    expect(await contract.balanceOf(unverified.address)).to.equal(0);
+  });
+
+  it('Minting is not allowed on paused contract', async () => {
+    await contract.pause();
+    await expect(contractAsMinter.mint(verified.address, 9)).to.be.reverted;
+    expect(await contract.balanceOf(verified.address)).to.equal(0);
+  });
+
+  it('Verification is not allowed on paused contract', async () => {
+    await contract.pause();
+    await expect(contractAsVerifier.verify(verified.address)).to.be.reverted;
+    expect(await contract.balanceOf(verified.address)).to.equal(0);
+  });
+
+  it('Burning is not allowed on paused contract', async () => {
+    await contractAsMinter.mint(verified.address, 20);
+    await contract.grantRole(await contract.BURNER_ROLE(), burner.address);
+    await expect(contractAsBurner.burn(10)).to.be.reverted;
+    await contractAsVerified.transfer(burner.address, 20);
+    expect(await contract.balanceOf(burner.address)).to.equal(20);
+    await contract.pause();
+    await expect(contractAsBurner.burn(5)).to.be.reverted;
+    expect(await contract.balanceOf(burner.address)).to.equal(20);
   });
 });

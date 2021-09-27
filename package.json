@@ -3,8 +3,8 @@
   "scripts": {
     "build": "waffle",
     "flatten": "waffle flatten",
-    "test": "yarn build && export NODE_ENV=test && mocha --timeout 5000",
-    "quick-test": "NODE_ENV=test && mocha --timeout 5000",
+    "test": "yarn build && export NODE_ENV=test && mocha --timeout 10000",
+    "quick-test": "NODE_ENV=test && mocha --timeout 10000",
     "ganache": "yarn ganache-cli -m \"waffle waffle waffle waffle waffle waffle waffle waffle waffle waffle waffle\"",
     "truffle:ropsten": "truffle console --network ropsten",
     "truffle:hardsten": "truffle console --network hardsten",
