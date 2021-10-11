@@ -142,7 +142,7 @@ describe('ZARP Core Tests', () => {
   });
 
   it('Check Token Setup', async () => {
-    expect(await contract.name()).to.equal('ZARP');
+    expect(await contract.name()).to.equal('ZARP Stablecoin');
     expect(await contract.decimals()).to.equal(18);
     expect(await contract.symbol()).to.equal('ZARP');
   });
