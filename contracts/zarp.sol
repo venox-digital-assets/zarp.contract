@@ -14,7 +14,7 @@ contract ZARP is ERC20, ERC20Burnable, AccessControl, Pausable {
 
   event AddressVerificationChanged(address indexed account, address indexed sender, bool verificationStatus);
 
-  constructor() ERC20("ZARP", "ZARP") {
+  constructor() ERC20("ZARP Stablecoin", "ZARP") {
     _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
   }
 
