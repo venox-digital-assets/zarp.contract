@@ -25,5 +25,6 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "solidity.compileUsingRemoteVersion": "v0.8.7+commit.e28d00a7"
 }
