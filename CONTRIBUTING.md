@@ -29,6 +29,8 @@ yarn hardhat run scripts/Deploy.ts
 npx hardhat run scripts/Deploy.ts --network goerli
 # To upgrade testnet contract (NB: Make sure UPGRADEABLE_ADDRESS is set correctly in `Deploy.ts`):
 npx hardhat run scripts/Upgrade.ts --network goerli
+# Verifying deployed contract. Be sure to use the correct address & network:
+yarn hardhat verify --network goerli 0xb755506531786C8aC63B756BaB1ac387bACB0C04
 ```
 
 ## Tests
