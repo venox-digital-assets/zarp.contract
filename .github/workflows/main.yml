@@ -27,11 +27,11 @@ jobs:
       - name: 'Create .env'
         run: |
           touch .env
-          echo INFURA_API_KEY=xxx >> .env
-          echo DEPLOYER_PRIVATE_KEY=xxx >> .env
-          echo ETHERSCAN_API_KEY=xxx >> .env
-          echo DEFENDER_API_KEY=xxx >> .env
-          echo DEFENDER_SECRET=xxx >> .env
+          echo INFURA_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx >> .env
+          echo DEPLOYER_PRIVATE_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx >> .env
+          echo ETHERSCAN_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx >> .env
+          echo DEFENDER_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx >> .env
+          echo DEFENDER_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx >> .env
           cat .env
       - run: yarn
       - run: yarn hardhat test
