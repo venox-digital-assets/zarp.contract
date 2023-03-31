@@ -3,7 +3,7 @@
     "titleBar.activeForeground": "#000000",
     "titleBar.inactiveForeground": "#000000CC",
     "titleBar.activeBackground": "#239c3e",
-    "titleBar.inactiveBackground": "#239c3e",
+    "titleBar.inactiveBackground": "#638b6b",
     "statusBar.background": "#239c3e",
     "statusBar.foreground": "#000000"
   },
@@ -19,12 +19,10 @@
     "editor.formatOnSave": false
   },
   "eslint.validate": ["typescript"],
-  "eslint.alwaysShowStatus": true,
   "breadcrumbs.enabled": true,
   "editor.renderControlCharacters": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "solidity.compileUsingRemoteVersion": "v0.8.7+commit.e28d00a7"
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
