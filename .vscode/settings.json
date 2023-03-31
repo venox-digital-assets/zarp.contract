@@ -5,7 +5,7 @@
     "titleBar.activeBackground": "#00493D",
     "titleBar.inactiveBackground": "#01362d",
     "statusBar.background": "#00493D",
-    "statusBar.foreground": "#ffffff"
+    "statusBar.foreground": "#FFE400"
   },
   "files.eol": "\n",
   "editor.tabSize": 2,
