@@ -13,7 +13,6 @@
   "editor.detectIndentation": false,
   "editor.trimAutoWhitespace": true,
   "editor.formatOnPaste": true,
-  "eslint.packageManager": "yarn",
   "editor.formatOnSave": true,
   "[typescript]": {
     "editor.formatOnSave": false
@@ -22,7 +21,7 @@
   "breadcrumbs.enabled": true,
   "editor.renderControlCharacters": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
