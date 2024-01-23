@@ -11,3 +11,6 @@ artifacts
 
 # Our logs
 .create-token
+
+# Solana Local Validator
+.test-ledger
