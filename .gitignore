@@ -13,4 +13,4 @@ artifacts
 .create-token
 
 # Solana Local Validator
-.test-ledger
+test-ledger
