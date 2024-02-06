@@ -2,7 +2,7 @@
 
 TOKEN_NAME := 'ZARP Stablecoin'
 TOKEN_SYMBOL := 'ZARP'
-TOKEN_URI := 'https://zarp.cash'
+TOKEN_URI := 'https://raw.githubusercontent.com/venox-digital-assets/zarp.contract/feature/solana/public/sol-metadata.json'
 
 CREATE_TOKEN_DIR := .create-token
 LOG_FILE := $(CREATE_TOKEN_DIR)/create-token-output.log
