@@ -12,8 +12,8 @@ create-base:
 	@mkdir -p $(CREATE_TOKEN_DIR)
 	@{ \
 		echo "Creating base token..." > $(LOG_FILE); \
-		echo "Executing: spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --enable-metadata --enable-freeze" | tee -a $(LOG_FILE); \
-		TOKEN_OUTPUT=$$(spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --enable-metadata --enable-freeze); \
+		echo "Executing: spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --enable-metadata --enable-freeze  --enable-close  --enable-permanent-delegate" | tee -a $(LOG_FILE); \
+		TOKEN_OUTPUT=$$(spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --enable-metadata --enable-freeze  --enable-close  --enable-permanent-delegate); \
 		echo "$$TOKEN_OUTPUT" | tee -a $(LOG_FILE); \
 		TOKEN_ADDRESS=$$(echo "$$TOKEN_OUTPUT" | grep 'Address:' | awk '{print $$2}'); \
 		echo $$TOKEN_ADDRESS > $(ADDRESS_FILE); \
@@ -28,7 +28,7 @@ initialize-metadata: create-base
 		spl-token initialize-metadata $(TOKEN_ADDRESS) $(TOKEN_NAME) $(TOKEN_SYMBOL) $(TOKEN_URI); \
 	} 2>&1 | tee -a $(LOG_FILE)
 
-create-account: initialize-metadata
+create-account: initialize-metadata 
 	$(eval TOKEN_ADDRESS=$(shell cat $(ADDRESS_FILE)))
 	@{ \
 		echo "Creating account for token: $(TOKEN_ADDRESS)..."; \
