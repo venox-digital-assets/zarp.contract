@@ -14,6 +14,8 @@ solana-keygen new
 solana config set -k ~/.config/solana/id.json
 solana airdrop 2
 solana balance
+solana address 
+# You will need the address later
 ```
 
 ## Local
@@ -26,6 +28,8 @@ make local-sol
 
 # In seperate terminal, ensure we're pointing to the local validator and create the token:
 solana config set --url localhost
+# Replace the address below with the local address from `solana address`
+export MINT_AND_BURN_ADDRESS=0x0
 make create-token
 
 # The created token address is saved in:
@@ -47,6 +51,21 @@ solana airdrop 1 --url devnet
 ```
 
 ## Known issues
+
+- If you want to use a Hardware wallet via WSL2, you need to attach it using: https://learn.microsoft.com/en-us/windows/wsl/connect-usb 
+
+Windows Terminal (Administrator)
+```sh
+usbipd list
+usbipd bind --busid <busid>
+usbipd attach --wsl --busid <busid>
+```
+
+WSL2 (Ubuntu):
+```sh
+lsusb
+```
+
 
 - Sometimes `solana-test-validator` fails to start after install if you don't have bzip2: `sudo apt-get install bzip2`, or check the logs: `tail ./test-ledger/validator.log`
 

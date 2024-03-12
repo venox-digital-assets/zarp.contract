@@ -12,21 +12,21 @@ ACCOUNT_ADDRESS_FILE := $(CREATE_TOKEN_DIR)/account_address.txt
 
 check-vars:
 ifndef DEPLOYER_ADDRESS
-	$(error MINT_AND_BURN_ADDRESS is required, but undefined. Set with `export MINT_AND_BURN_ADDRESS=0x0`)
+	$(error DEPLOYER_ADDRESS is required, but undefined. Set with `export DEPLOYER_ADDRESS=0x0`)
 endif
 ifndef MINT_AND_BURN_ADDRESS
 	$(error MINT_AND_BURN_ADDRESS is required, but undefined. Set with `export MINT_AND_BURN_ADDRESS=0x0`)
 endif
-ifndef DELEGATE_ADDRESS
-	$(error DELEGATE_ADDRESS is required, but undefined. Set with `export DELEGATE_ADDRESS=0x0`)
+ifndef OWNER_ADDRESS
+	$(error OWNER_ADDRESS is required, but undefined. Set with `export OWNER_ADDRESS=0x0`)
 endif
 
 create-base: confirm check-vars
 	@mkdir -p $(CREATE_TOKEN_DIR)
 	@{ \
 		echo "Creating base token..." > $(LOG_FILE); \
-		echo "Executing: spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --decimals 6 --default-account-state initialized --enable-confidential-transfers manual --enable-metadata --enable-freeze  --enable-close  --enable-permanent-delegate" | tee -a $(LOG_FILE); \
-		TOKEN_OUTPUT=$$(spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --decimals 6 --default-account-state initialized --enable-confidential-transfers manual --enable-metadata --enable-freeze  --enable-close  --enable-permanent-delegate); \
+		echo "Executing: spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --decimals 6 --default-account-state initialized --enable-confidential-transfers manual --enable-metadata --enable-freeze  --enable-close" | tee -a $(LOG_FILE); \
+		TOKEN_OUTPUT=$$(spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --decimals 6 --default-account-state initialized --enable-confidential-transfers manual --enable-metadata --enable-freeze  --enable-close); \
 		echo "$$TOKEN_OUTPUT" | tee -a $(LOG_FILE); \
 		TOKEN_ADDRESS=$$(echo "$$TOKEN_OUTPUT" | grep 'Address:' | awk '{print $$2}'); \
 		echo $$TOKEN_ADDRESS > $(ADDRESS_FILE); \
@@ -60,31 +60,29 @@ create-account: initialize-metadata
 transfer-permissions: create-account
 	$(eval TOKEN_ADDRESS=$(shell cat $(ADDRESS_FILE)))
 	$(eval ACCOUNT_ADDRESS=$(shell cat $(ACCOUNT_ADDRESS_FILE)))
-	$(eval DELEGATE_ATOKEN_ADDRESS=$(shell spl-token address --token $(TOKEN_ADDRESS) --owner $(DELEGATE_ADDRESS) --verbose | grep -oP '(?<=Associated token address: ).*'))
+	$(eval OWNER_ATOKEN_ADDRESS=$(shell spl-token address --token $(TOKEN_ADDRESS) --owner $(OWNER_ADDRESS) --verbose | grep -oP '(?<=Associated token address: ).*'))
 	$(eval DEPLOYER_ATOKEN_ADDRESS=$(shell spl-token address --token $(TOKEN_ADDRESS) --owner $(DEPLOYER_ADDRESS) --verbose | grep -oP '(?<=Associated token address: ).*'))
 	@{ \
-			echo "Transferring permissions for token: $(TOKEN_ADDRESS) to $(DELEGATE_ADDRESS)'s associated token account: $(DELEGATE_ATOKEN_ADDRESS)..."; \
+			echo "Transferring permissions for token: $(TOKEN_ADDRESS) to $(OWNER_ADDRESS)'s associated token account: $(OWNER_ATOKEN_ADDRESS)..."; \
 			echo "Executing: spl-token approve $(ACCOUNT_ADDRESS) 0 $(DEPLOYER_ATOKEN_ADDRESS)"; \
 			spl-token approve $(ACCOUNT_ADDRESS) 0 $(DEPLOYER_ATOKEN_ADDRESS); \
 			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) mint $(MINT_AND_BURN_ADDRESS)"; \
 			spl-token authorize $(TOKEN_ADDRESS) mint $(MINT_AND_BURN_ADDRESS); \
 			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) freeze $(MINT_AND_BURN_ADDRESS)"; \
 			spl-token authorize $(TOKEN_ADDRESS) freeze $(MINT_AND_BURN_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) close-mint $(DELEGATE_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) close-mint $(DELEGATE_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) confidential-transfer-mint $(DELEGATE_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) confidential-transfer-mint $(DELEGATE_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) metadata $(DELEGATE_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) metadata $(DELEGATE_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) metadata-pointer $(DELEGATE_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) metadata-pointer $(DELEGATE_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) permanent-delegate $(DELEGATE_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) permanent-delegate $(DELEGATE_ADDRESS); \
+			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) close-mint $(OWNER_ADDRESS)"; \
+			spl-token authorize $(TOKEN_ADDRESS) close-mint $(OWNER_ADDRESS); \
+			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) confidential-transfer-mint $(OWNER_ADDRESS)"; \
+			spl-token authorize $(TOKEN_ADDRESS) confidential-transfer-mint $(OWNER_ADDRESS); \
+			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) metadata $(OWNER_ADDRESS)"; \
+			spl-token authorize $(TOKEN_ADDRESS) metadata $(OWNER_ADDRESS); \
+			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) metadata-pointer $(OWNER_ADDRESS)"; \
+			spl-token authorize $(TOKEN_ADDRESS) metadata-pointer $(OWNER_ADDRESS); \
 			echo ""; \
 			echo "Revoking permissions for token: $(TOKEN_ADDRESS) from $(DEPLOYER_ADDRESS)..."; \
 			spl-token revoke $(DEPLOYER_ATOKEN_ADDRESS); \
 	} 2>&1 | tee -a $(LOG_FILE)
-	@echo "Transferred permissions for token: $(TOKEN_ADDRESS) to $(DELEGATE_ADDRESS)'s associated token account: $(DELEGATE_ATOKEN_ADDRESS)"
+	@echo "Transferred permissions for token: $(TOKEN_ADDRESS) to $(OWNER_ADDRESS)'s associated token account: $(OWNER_ATOKEN_ADDRESS)"
 
 mint-tokens: 
 	$(eval TOKEN_ADDRESS=$(shell cat $(ADDRESS_FILE)))
@@ -115,7 +113,7 @@ confirm: check-vars
 		echo "Active Variables"; \
 		echo "-------------------------------"; \
 		echo "MINT_AND_BURN_ADDRESS=$(MINT_AND_BURN_ADDRESS)"; \
-		echo "DELEGATE_ADDRESS=$(DELEGATE_ADDRESS)"; \
+		echo "OWNER_ADDRESS=$(OWNER_ADDRESS)"; \
 		echo "-------------------------------"; \
 		echo ""; \
 		echo "NB: PLEASE MAKE SURE THESE ARE CORRECT!"; \
