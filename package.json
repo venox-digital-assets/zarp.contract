@@ -37,5 +37,6 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.2"
-  }
+  },
+  "packageManager": "yarn@4.4.0"
 }

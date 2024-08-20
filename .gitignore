@@ -8,9 +8,20 @@ typechain-types
 # Hardhat files
 cache
 artifacts
+build/
+coverage/
+coverage.json
+.hardhat/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Our logs
 .create-token
 
 # Solana Local Validator
 test-ledger
+
+# Yarn
+install-state.gz
