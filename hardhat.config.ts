@@ -1,10 +1,9 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomiclabs/hardhat-etherscan';
-import '@nomicfoundation/hardhat-toolbox';
 import '@openzeppelin/hardhat-upgrades';
-import '@openzeppelin/hardhat-defender';
 
 require('dotenv').config();
+
 const {
   INFURA_API_KEY: apiKey,
   DEPLOYER_PRIVATE_KEY: deployerKey,
