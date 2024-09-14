@@ -1,11 +1,9 @@
-import { ethers, upgrades, defender } from 'hardhat';
-import { ContractFactory } from 'ethers';
+import { ethers, upgrades, defender, network } from 'hardhat';
+import { ContractFactory } from 'ethers'; // Use ethers.ContractFactory
+import { formatEther } from 'ethers'; // Import formatEther directly from ethers
 
 // Configuration
-const UPGRADEABLE_ADDRESS = '0x613FDF5A52Da6964EE7DA342271f870aE8eA1514'; // Sepolia address
-const APPROVAL_ADDRESS = '0xfA4EB9AA068B3b64348f42b142E270f28E2f86EB';
-const ZARP_REPO_URL = 'https://github.com/venox-digital-assets/zarp.contract';
-const ZARP_ADMIN_APPROVAL_PROCESS_ID = '87e2ddfe-20c2-445f-92b1-d4f2bafe3d3b';
+const UPGRADEABLE_ADDRESS = '0xb755506531786C8aC63B756BaB1ac387bACB0C04'; // Existing upgradeable address
 
 async function main() {
   // Get the deployer account
@@ -17,19 +15,26 @@ async function main() {
 
   // Get the balance using the provider
   const balance = await ethers.provider.getBalance(address);
-  console.log('Account balance:', ethers.formatEther(balance));
+  console.log('Account balance:', formatEther(balance)); // Correctly using formatEther from ethers
 
-  // Get the contract factory for Zarp - need to do forced type wrangling, which I hate, but can't find a way around right now
-  const TokenFactory = (await ethers.getContractFactory('Zarp')) as unknown as ContractFactory;
+  // Get the contract factory for Zarp
+  const zarpFactory = (await ethers.getContractFactory('Zarp')) as unknown as ContractFactory;
 
-  // Propose the upgrade with approval using Defender
-  const proposal = await defender.proposeUpgradeWithApproval(UPGRADEABLE_ADDRESS, TokenFactory, {
-    approvalProcessId: ZARP_ADMIN_APPROVAL_PROCESS_ID,
-  });
+  // Check if we're running locally
+  if (network.name === 'localhost' || network.name === 'hardhat') {
+    // Perform local upgrade using Hardhat's upgradeProxy
+    console.log('Running on local network, performing direct upgrade...');
 
-  console.log('Upgrade proposal created at:', proposal.url);
+    const upgraded = await upgrades.upgradeProxy(UPGRADEABLE_ADDRESS, zarpFactory);
+    console.log('Contract upgraded locally:', await upgraded.getAddress());
+  } else {
+    // Use OpenZeppelin Defender for testnet/mainnet upgrades
+    console.log('Running on non-local network, using Defender for upgrade...');
 
-  // Verification step (if needed)
+    const proposal = await defender.proposeUpgradeWithApproval(UPGRADEABLE_ADDRESS, zarpFactory);
+
+    console.log('Upgrade proposal created at:', proposal.url);
+  }
 }
 
 main().catch(error => {
