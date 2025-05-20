@@ -1,40 +1,73 @@
 # ZARP Contribution Guide
 
+Building and maintaining ZARP involves smart contracts on Ethereum and an SPL token on Solana. This guide explains how to set up, test, and contribute.
+
+## Table of Contents
+
+- [ZARP Contribution Guide](#zarp-contribution-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Principles](#principles)
+  - [Setup](#setup)
+  - [Running the Project](#running-the-project)
+  - [Tests](#tests)
+  - [Solana SPL Token Workflow](#solana-spl-token-workflow)
+
 ## Principles
 
-Brief list of principles, and impact on tech:
+We follow these core principles:
 
-- Use and trust openzeppelin. We believe that sticking to battle-tested open-source implementations results in simple, robust and secure contracts
-- Test-driven, but don't recreate all the openzeppelin tests (see above)
+- Trust and reuse battle-tested code (e.g. OpenZeppelin libraries).
+- Write tests for new features; avoid duplicating upstream tests.
+- Keep contracts simple, secure, and well-documented.
 
 ## Setup
 
-- Configure .env with the following settings:
+1. Clone the repo and install dependencies:
+   ```sh
+   yarn install
+   ```
+2. Create a `.env` file based on `.env.example` with these variables:
+   ```dotenv
+   INFURA_API_KEY=...
+   DEPLOYER_PRIVATE_KEY=...
+   ETHERSCAN_API_KEY=...
+   DEFENDER_API_KEY=...
+   DEFENDER_SECRET=...
+   ```
 
-```dotenv
-INFURA_API_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-DEPLOYER_PRIVATE_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-ETHERSCAN_API_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-DEFENDER_API_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-DEFENDER_SECRET=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-```
+## Running the Project
 
-## Running the project
+Compile and deploy your changes locally or to testnets:
 
 ```sh
-yarn
+# Run tests
 yarn hardhat test
+
+# Deploy to local Hardhat network
 yarn hardhat run scripts/Deploy.ts
-# To deploy to testnet:
+
+# Deploy to Sepolia testnet
 yarn hardhat run scripts/Deploy.ts --network sepolia
-# To upgrade testnet contract (NB: Make sure UPGRADEABLE_ADDRESS is set correctly in `Deploy.ts`):
+
+# Upgrade (ensure UPGRADEABLE_ADDRESS is set in Deploy.ts)
 yarn hardhat run scripts/Upgrade.ts --network sepolia
-# Verifying deployed contract. Be sure to use the correct address & network:
-yarn hardhat verify --network sepolia 0xb755506531786C8aC63B756BaB1ac387bACB0C04
+
+# Verify on Etherscan
+yarn hardhat verify --network sepolia <DEPLOYED_ADDRESS>
 ```
 
 ## Tests
 
-Before submitting a PR, make sure that all tests pass
+Before submitting a PR, ensure all tests pass:
 
-`yarn test`
+```sh
+yarn test
+```
+
+## Solana SPL Token Workflow
+
+For the Solana SPL token utility (creating and managing ZARP tokens on Solana), see:
+
+- `solana/README.md`: instructions and Makefile targets.
+
+Contributions to the Solana module should follow the patterns in that README.

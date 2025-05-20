@@ -1,129 +1,187 @@
-.PHONY: create-token use-token
+# 📜 ZARP Solana Makefile — epic token shenanigans 🎉
+.DEFAULT_GOAL := help
 
-TOKEN_NAME := 'ZARP Stablecoin'
-TOKEN_SYMBOL := 'ZARP'
-TOKEN_URI := 'https://raw.githubusercontent.com/venox-digital-assets/zarp.contract/main/public/sol-metadata.json'
+SHELL := bash
+.ONESHELL:
+.SHELLFLAGS := -euo pipefail -c  # keep -euo, remove -x for silent execution
 
-CREATE_TOKEN_DIR := .create-token
-LOG_FILE := $(CREATE_TOKEN_DIR)/create-token-output.log
-ADDRESS_FILE := $(CREATE_TOKEN_DIR)/token_address.txt
-ACCOUNT_ADDRESS_FILE := $(CREATE_TOKEN_DIR)/account_address.txt
+# Increase HTTP client timeout for slow RPC endpoints
+export SOLANA_HTTP_CLIENT_TIMEOUT=60
 
+# Load per-network WAIT_TIME if set; default to 5s
+-include .make.env
+WAIT_TIME ?= 5
+
+# CLI program definitions
+SPL_PROG     := TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb
+SPL          := spl-token --program-id $(SPL_PROG)
+SPL_BASE     := spl-token
+
+# Logging and artifact directories
+LOG_DIR      := .create-token
+LOG_FILE     := $(LOG_DIR)/create-token-output.log
+ADDR_FILE    := $(LOG_DIR)/token_address.txt
+ACCT_FILE    := $(LOG_DIR)/account_address.txt
+
+# Metadata parameters
+TOKEN_NAME   := "ZARP Stablecoin"
+TOKEN_SYMBOL := "ZARP"
+TOKEN_URI    := "https://raw.githubusercontent.com/venox-digital-assets/zarp.contract/main/public/sol-metadata.json"
+
+# Override default shell to bash for cross-user consistency
+default_shell:
+	@echo "Using shell: $$SHELL"
+
+#───────────────────────────────────────────────────────────────────────────────
+# Help (default)
+#───────────────────────────────────────────────────────────────────────────────
+.PHONY: help check-vars confirm local-sol reset-local-sol create-base initialize-metadata create-account transfer-permissions mint-tokens create-init-display create-token set-local set-devnet set-testnet set-mainnet
+
+help:
+	@echo "Usage: make [target]"
+	@echo
+	@echo "Targets:"
+	@echo "  help                   Show this help message"
+	@echo "  check-vars             Validate required env vars"
+	@echo "  confirm                Review and confirm before running"
+	@echo "  create-token           Create & configure a brand-new ZARP token 🎁"
+	@echo "  mint-tokens            Mint 100,000 ZARP tokens 💰"
+	@echo "  local-sol              Launch local Solana validator 🚀"
+	@echo "  set-local              Switch Solana CLI to Localnet 🏠"
+	@echo "  set-devnet             Switch Solana CLI to Devnet 🌐"
+	@echo "  set-testnet            Switch Solana CLI to Testnet 🔧"
+	@echo "  set-mainnet            Switch Solana CLI to Mainnet-Beta 🏛️"
+	@echo
 
 check-vars:
-ifndef DEPLOYER_ADDRESS
-	$(error DEPLOYER_ADDRESS is required, but undefined. Set with `export DEPLOYER_ADDRESS=0x0`)
-endif
-ifndef MINT_AND_BURN_ADDRESS
-	$(error MINT_AND_BURN_ADDRESS is required, but undefined. Set with `export MINT_AND_BURN_ADDRESS=0x0`)
-endif
-ifndef OWNER_ADDRESS
-	$(error OWNER_ADDRESS is required, but undefined. Set with `export OWNER_ADDRESS=0x0`)
-endif
-
-create-base: confirm check-vars
-	@mkdir -p $(CREATE_TOKEN_DIR)
-	@{ \
-		echo "Creating base token..." > $(LOG_FILE); \
-		echo "Executing: spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --decimals 6 --default-account-state initialized --enable-confidential-transfers manual --enable-metadata --enable-freeze  --enable-close" | tee -a $(LOG_FILE); \
-		TOKEN_OUTPUT=$$(spl-token --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb create-token --decimals 6 --default-account-state initialized --enable-confidential-transfers manual --enable-metadata --enable-freeze  --enable-close); \
-		echo "$$TOKEN_OUTPUT" | tee -a $(LOG_FILE); \
-		TOKEN_ADDRESS=$$(echo "$$TOKEN_OUTPUT" | grep 'Address:' | awk '{print $$2}'); \
-		echo $$TOKEN_ADDRESS > $(ADDRESS_FILE); \
-		echo "Token Address: $$TOKEN_ADDRESS"; \
-	} 
-
-initialize-metadata: create-base
-	$(eval TOKEN_ADDRESS=$(shell cat $(ADDRESS_FILE)))
-	@{ \
-		echo "Updating metadata for token: $(TOKEN_ADDRESS)..."; \
-		echo "Executing: spl-token initialize-metadata $(TOKEN_ADDRESS) $(TOKEN_NAME) $(TOKEN_SYMBOL) $(TOKEN_URI)"; \
-		spl-token initialize-metadata $(TOKEN_ADDRESS) $(TOKEN_NAME) $(TOKEN_SYMBOL) $(TOKEN_URI); \
-	} 2>&1 | tee -a $(LOG_FILE)
-
-create-account: initialize-metadata 
-	$(eval TOKEN_ADDRESS=$(shell cat $(ADDRESS_FILE)))
-	@{ \
-			echo "Creating accounts for token: $(TOKEN_ADDRESS)..."; \
-			echo "Executing: spl-token create-account $(TOKEN_ADDRESS)"; \
-			ACCOUNT_OUTPUT=$$(spl-token create-account $(TOKEN_ADDRESS));\
-			echo "$$ACCOUNT_OUTPUT" | tee -a $(LOG_FILE); \
-			ACCOUNT_ADDRESS=$$(echo "$$ACCOUNT_OUTPUT" | grep 'Creating account ' | awk '{print $$3}'); \
-			echo "$$ACCOUNT_OUTPUT" | grep 'Creating account '; \
-			echo $$ACCOUNT_ADDRESS > $(ACCOUNT_ADDRESS_FILE); \
-			echo "Created account with address: $$ACCOUNT_ADDRESS"; \
-			# echo "Creating Mint And Burn Account: spl-token create-account $(TOKEN_ADDRESS) --owner $(MINT_AND_BURN_ADDRESS) --fee-payer ~/.config/solana/id.json"; \
-			# spl-token create-account $(TOKEN_ADDRESS) --owner $(MINT_AND_BURN_ADDRESS) --fee-payer ~/.config/solana/id.json; \
-	} 2>&1 | tee -a $(LOG_FILE)
-	$(eval export ACCOUNT_ADDRESS=$(shell grep 'Created account with address' $(LOG_FILE) | awk '{print $$6}'))
-
-transfer-permissions: create-account
-	$(eval TOKEN_ADDRESS=$(shell cat $(ADDRESS_FILE)))
-	$(eval ACCOUNT_ADDRESS=$(shell cat $(ACCOUNT_ADDRESS_FILE)))
-	$(eval OWNER_ATOKEN_ADDRESS=$(shell spl-token address --token $(TOKEN_ADDRESS) --owner $(OWNER_ADDRESS) --verbose | grep -oP '(?<=Associated token address: ).*'))
-	$(eval DEPLOYER_ATOKEN_ADDRESS=$(shell spl-token address --token $(TOKEN_ADDRESS) --owner $(DEPLOYER_ADDRESS) --verbose | grep -oP '(?<=Associated token address: ).*'))
-	@{ \
-			echo "Transferring permissions for token: $(TOKEN_ADDRESS) to $(OWNER_ADDRESS)'s associated token account: $(OWNER_ATOKEN_ADDRESS)..."; \
-			echo "Executing: spl-token approve $(ACCOUNT_ADDRESS) 0 $(DEPLOYER_ATOKEN_ADDRESS)"; \
-			spl-token approve $(ACCOUNT_ADDRESS) 0 $(DEPLOYER_ATOKEN_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) mint $(MINT_AND_BURN_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) mint $(MINT_AND_BURN_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) freeze $(MINT_AND_BURN_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) freeze $(MINT_AND_BURN_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) close-mint $(OWNER_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) close-mint $(OWNER_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) confidential-transfer-mint $(OWNER_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) confidential-transfer-mint $(OWNER_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) metadata $(OWNER_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) metadata $(OWNER_ADDRESS); \
-			echo "Executing: spl-token authorize $(TOKEN_ADDRESS) metadata-pointer $(OWNER_ADDRESS)"; \
-			spl-token authorize $(TOKEN_ADDRESS) metadata-pointer $(OWNER_ADDRESS); \
-			echo ""; \
-			echo "Revoking permissions for token: $(TOKEN_ADDRESS) from $(DEPLOYER_ADDRESS)..."; \
-			spl-token revoke $(DEPLOYER_ATOKEN_ADDRESS); \
-	} 2>&1 | tee -a $(LOG_FILE)
-	@echo "Transferred permissions for token: $(TOKEN_ADDRESS) to $(OWNER_ADDRESS)'s associated token account: $(OWNER_ATOKEN_ADDRESS)"
-
-mint-tokens: 
-	$(eval TOKEN_ADDRESS=$(shell cat $(ADDRESS_FILE)))
-	@{ \
-		echo "Minting tokens to the account..."; \
-		echo "Executing: spl-token mint $(TOKEN_ADDRESS) 100000"; \
-		spl-token mint $(TOKEN_ADDRESS) 100000; \
-	} 2>&1 | tee -a $(LOG_FILE)
-
-create-init-display: transfer-permissions
-	$(eval TOKEN_ADDRESS=$(shell cat $(ADDRESS_FILE)))
-	@{ \
-		echo "Displaying token: $(TOKEN_ADDRESS)..."; \
-		echo "Executing: spl-token display $(TOKEN_ADDRESS)"; \
-		spl-token display $(TOKEN_ADDRESS); \
-	} 2>&1 | tee -a $(LOG_FILE)
-
-create-token: create-init-display
-	@echo "FIN."
+	@test -n "$(DEPLOYER_ADDRESS)" || { echo >&2 "Error: DEPLOYER_ADDRESS must be set"; exit 1; }
+	@test -n "$(MINT_AND_BURN_ADDRESS)" || { echo >&2 "Error: MINT_AND_BURN_ADDRESS must be set"; exit 1; }
+	@test -n "$(OWNER_ADDRESS)" || { echo >&2 "Error: OWNER_ADDRESS must be set"; exit 1; }
 
 confirm: check-vars
-	@{ \
-		echo "-------------------------------"; \
-		echo "Active Solana config"; \
-		echo "-------------------------------"; \
-		solana config get; \
-		echo "-------------------------------"; \
-		echo "Active Variables"; \
-		echo "-------------------------------"; \
-		echo "MINT_AND_BURN_ADDRESS=$(MINT_AND_BURN_ADDRESS)"; \
-		echo "OWNER_ADDRESS=$(OWNER_ADDRESS)"; \
-		echo "-------------------------------"; \
-		echo ""; \
-		echo "NB: PLEASE MAKE SURE THESE ARE CORRECT!"; \
-		echo ""; \
-		echo "-------------------------------"; \
-	} 2>&1 | tee -a $(LOG_FILE)
-	@echo -n "Are you sure? [y/N] " && read ans && [ $${ans:-N} = y ]
+	@mkdir -p $(LOG_DIR)
+	@tee -a $(LOG_FILE) <<EOF
+	-------------------------------
+	Active Solana config
+	-------------------------------
+	$$(solana config get)
+	-------------------------------
+	Active Variables
+	-------------------------------
+	MINT_AND_BURN_ADDRESS=$(MINT_AND_BURN_ADDRESS)
+	DEPLOYER_ADDRESS=$(DEPLOYER_ADDRESS)
+	OWNER_ADDRESS=$(OWNER_ADDRESS)
+	-------------------------------
+	EOF
+	@read -p "Proceed? [y/N] " ans; test "$${ans,,}" = y
 
-local-sol: 
-	@echo "Starting local solana validator..."
-	solana-test-validator
+#───────────────────────────────────────────────────────────────────────────────
+# Validator Control
+#───────────────────────────────────────────────────────────────────────────────
+local-sol:
+	@echo "🔧 Starting local solana-test-validator (resetting ledger)..."
+	@RUST_LOG=debug solana-test-validator --reset
 
-	
+reset-local-sol: local-sol
+
+#───────────────────────────────────────────────────────────────────────────────
+# Network Configuration
+#───────────────────────────────────────────────────────────────────────────────
+.PHONY: set-local set-devnet set-testnet set-mainnet
+
+set-local:
+	@echo "🔀 Switching Solana CLI to Localnet"
+	@solana config set --url http://localhost:8899
+	@echo "WAIT_TIME=0.5" > .make.env
+	@echo "Set WAIT_TIME=0.5 for Local"
+
+set-devnet:
+	@echo "🔀 Switching Solana CLI to Devnet"
+	@solana config set --url https://api.devnet.solana.com
+	@echo "WAIT_TIME=1" > .make.env
+	@echo "Set WAIT_TIME=1 for Devnet"
+
+set-testnet:
+	@echo "🔀 Switching Solana CLI to Testnet"
+	@solana config set --url https://api.testnet.solana.com
+	@solana config set --commitment confirmed
+	@echo "WAIT_TIME=5" > .make.env
+	@echo "Set WAIT_TIME=5 for Testnet"
+
+set-mainnet:
+	@echo "🔀 Switching Solana CLI to Mainnet-Beta"
+	@solana config set --url https://api.mainnet-beta.solana.com
+	@echo "WAIT_TIME=20" > .make.env
+	@echo "Set WAIT_TIME=20 for Mainnet-Beta"
+
+#───────────────────────────────────────────────────────────────────────────────
+# Token creation and management pipeline
+#───────────────────────────────────────────────────────────────────────────────
+# Ensure `spl-token` CLI is installed
+check-spl-cli:
+	@command -v spl-token >/dev/null \
+		|| { echo >&2 "Error: spl-token CLI not found. Install via 'solana install spl-token' or see https://spl.solana.com/token"; exit 1; }
+
+# Token creation depends on the `spl-token` CLI
+create-base: check-spl-cli confirm
+	@mkdir -p $(LOG_DIR)
+	@echo ">> Creating base token" > $(LOG_FILE)
+	T_OUT=$$($(SPL) create-token --decimals 6 \
+		--enable-metadata \
+		--enable-freeze --enable-close)
+	@echo "$$T_OUT" | tee -a $(LOG_FILE)
+	@TOKEN_ADDRESS=$$(echo "$$T_OUT" | grep 'Address:' | awk '{print $$2}')
+	@echo "Token Address: $$TOKEN_ADDRESS"
+	@echo "$$TOKEN_ADDRESS" > $(ADDR_FILE)
+
+initialize-metadata: create-base
+	@TOKEN=$$(cat $(ADDR_FILE))
+	@echo "==> Waiting $(WAIT_TIME)s for indexing before metadata init..." | tee -a $(LOG_FILE)
+	@sleep $(WAIT_TIME)
+	@echo "==> Initializing metadata for $$TOKEN" | tee -a $(LOG_FILE)
+	@$(SPL) initialize-metadata $$TOKEN $(TOKEN_NAME) $(TOKEN_SYMBOL) $(TOKEN_URI) 2>&1 | tee -a $(LOG_FILE)
+
+create-account: initialize-metadata
+	@TOKEN=$$(cat $(ADDR_FILE))
+	@echo "==> Creating account for $$TOKEN" | tee -a $(LOG_FILE)
+	@echo "==> Waiting for RPC index sync..." | tee -a $(LOG_FILE)
+	@sleep 5
+	@A_OUT=$$($(SPL) create-account $$TOKEN)
+	@echo "$$A_OUT" | tee -a $(LOG_FILE)
+	@ACCOUNT_ADDRESS=$$(echo "$$A_OUT" | grep 'Creating account' | awk '{print $$3}')
+	@echo "Account Address: $$ACCOUNT_ADDRESS"
+	@echo "$$ACCOUNT_ADDRESS" > $(ACCT_FILE)
+
+transfer-permissions: create-account
+	@TOKEN=$$(cat $(ADDR_FILE))
+	@ACCT=$$(cat $(ACCT_FILE))
+	@echo "==> Waiting $(WAIT_TIME)s for indexing before permission transfer..." | tee -a $(LOG_FILE)
+	@sleep $(WAIT_TIME)
+	@OWNER_AT=$$($(SPL_BASE) address --token $$TOKEN --owner $(OWNER_ADDRESS) --verbose | grep -oP '(?<=Associated token address: ).*')
+	@DEP_AT=$$($(SPL_BASE) address --token $$TOKEN --owner $(DEPLOYER_ADDRESS) --verbose | grep -oP '(?<=Associated token address: ).*')
+	@echo ">> Transferring permissions for $$TOKEN" | tee -a $(LOG_FILE)
+	@$(SPL_BASE) approve $$ACCT 0 $$DEP_AT   | tee -a $(LOG_FILE)
+	@for auth in mint freeze close-mint metadata metadata-pointer; do \
+		 target=$$( [ "$$auth" = mint -o "$$auth" = freeze ] && echo $(MINT_AND_BURN_ADDRESS) || echo $(OWNER_ADDRESS) ); \
+		 echo "--> authorize $$auth -> $$target" | tee -a $(LOG_FILE); \
+		 $(SPL_BASE) authorize $$TOKEN $$auth $$target | tee -a $(LOG_FILE); \
+	 done
+	@echo "--> revoke $$DEP_AT" | tee -a $(LOG_FILE)
+	@$(SPL_BASE) revoke $$DEP_AT     | tee -a $(LOG_FILE)
+
+# Minting also requires the CLI
+mint-tokens: check-spl-cli
+	@TOKEN=$$(cat $(ADDR_FILE))
+	@echo "==> Minting 100,000 tokens to $$TOKEN" | tee -a $(LOG_FILE)
+	@$(SPL_BASE) mint $$TOKEN 100000   | tee -a $(LOG_FILE)
+	@echo "==> Displaying $$TOKEN after mint" | tee -a $(LOG_FILE)
+	@$(SPL_BASE) display $$TOKEN       | tee -a $(LOG_FILE)
+
+create-init-display: transfer-permissions
+	@TOKEN=$$(cat $(ADDR_FILE))
+	@echo "==> Displaying $$TOKEN" | tee -a $(LOG_FILE)
+	@$(SPL_BASE) display $$TOKEN       | tee -a $(LOG_FILE)
+
+create-token: create-init-display
+	@echo "==> All done. Token deployed at $$(cat $(ADDR_FILE))"
+
