@@ -4,8 +4,10 @@
 
 This directory now manages **Version 2** of the ZARP Solana SPL token. We migrated from **Version 1**, which shipped with two mandatory extensions:
 
-- **Default Account State**: new accounts were always initialized with a default state, disallowing manual control.
+- **Default Account State**: new accounts were always initialized with a default state, with the idea that this would help in future to mimic our 'validated' feature on EVM. However, it was incredibly limited in practice, and impossible to disable.
 - **Confidential Transfers**: on-chain encryption of transfer amounts for privacy, but impossible to disable.
+
+These two extensions severely limited the defi protocols that would accept ZARP. So for V2 we removed both of them.
 
 ### Version 2 Highlights 🚀
 
@@ -18,6 +20,7 @@ This directory now manages **Version 2** of the ZARP Solana SPL token. We migrat
 | v1      | Mainnet | [8v8aBHR7EXFZDwaqaRjAStEcmCj6VZi5iGq1YDtyTok6](https://solana.fm/address/8v8aBHR7EXFZDwaqaRjAStEcmCj6VZi5iGq1YDtyTok6/transactions?cluster=mainnet-alpha)  |
 | v2      | Devnet  | [FNijoBcYNp1U9xXDcZRkEbX6vNV24BamDQBhkRTCzLRP](https://solana.fm/address/FNijoBcYNp1U9xXDcZRkEbX6vNV24BamDQBhkRTCzLRP/transactions?cluster=devnet-alpha)   |
 | v2      | Testnet | [8Rb9pcgbAaSVwgJxFBpvFDoD3ZGkWDFDMfuDbVKkycmu](https://solana.fm/address/8Rb9pcgbAaSVwgJxFBpvFDoD3ZGkWDFDMfuDbVKkycmu/transactions?cluster=testnet-solana) |
+| v2      | Mainnet | [dngKhBQM3BGvsDHKhrLnjvRKfY5Q7gEnYGToj9Lk8rk](https://solana.fm/address/dngKhBQM3BGvsDHKhrLnjvRKfY5Q7gEnYGToj9Lk8rk?cluster=mainnet-alpha)                 |
 
 This directory uses a `Makefile` to create and manage a ZARP SPL token on a local or Devnet Solana cluster.
 
@@ -127,7 +130,7 @@ The Makefile includes convenient `set-<network>` targets to configure your Solan
   Switches to Testnet (`https://api.testnet.solana.com`) with commitment `confirmed` and `WAIT_TIME=5`.
 
 - **make set-mainnet**  
-  Switches to Mainnet-Beta (`https://api.mainnet-beta.solana.com`) with `WAIT_TIME=20`. Make sure you have real SOL and funded accounts (no airdrop).
+  Switches to Mainnet-Beta (`https://api.mainnet-beta.solana.com`) with `WAIT_TIME=5`. Make sure you have real SOL and funded accounts (no airdrop).
 
 After running any `set-<network>` target, update your wallet environment variables for that network:
 

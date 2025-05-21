@@ -111,8 +111,10 @@ set-testnet:
 set-mainnet:
 	@echo "🔀 Switching Solana CLI to Mainnet-Beta"
 	@solana config set --url https://api.mainnet-beta.solana.com
-	@echo "WAIT_TIME=20" > .make.env
-	@echo "Set WAIT_TIME=20 for Mainnet-Beta"
+	@solana config set --commitment confirmed
+	@solana config set usb://ledger?key=0/0 
+	@echo "WAIT_TIME=5" > .make.env
+	@echo "Set WAIT_TIME=5 for Mainnet-Beta"
 
 #───────────────────────────────────────────────────────────────────────────────
 # Token creation and management pipeline
