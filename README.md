@@ -22,23 +22,3 @@ So many people helped and inspired us in this project. We would however specific
 ## License
 
 ZARP is released under the MIT License.
-
-## Canonical Proxy Status
-
-Inspect canonical proxy expectations and on-chain state:
-
-```sh
-yarn hardhat zarp:canonical --network localhost --json
-```
-
-CI style check (local default network):
-
-```sh
-yarn canonical:check
-```
-
-JSON fields:
-
-```text
-network, expectedCanonical, deploymentRecordProxy, onChainHasCode, matchesCanonical
-```

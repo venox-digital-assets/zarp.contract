@@ -1,6 +1,8 @@
 // Canonical proxy registry: chainId -> proxy address
 // Grandfathered canonical proxy address used across existing deployed networks.
-// DO NOT mutate past entries without governance approval.
+// This is the canonical proxy address used across multiple networks.
+// Changing this address requires governance approval, as it may affect deployed
+// contracts and integrations. DO NOT mutate past entries without governance sign-off.
 
 export const CANONICAL_PROXY_ADDRESS = '0xb755506531786C8aC63B756BaB1ac387bACB0C04';
 

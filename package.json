@@ -38,6 +38,7 @@
   },
   "scripts": {
     "canonical:check": "hardhat zarp:canonical --json || exit 1",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

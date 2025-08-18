@@ -109,7 +109,7 @@ task('zarp:upgrade', 'Upgrade the canonical Zarp proxy to the latest implementat
     }
     const Factory = await ethers.getContractFactory(targetImplName, signer);
     const signerAddr = await signer.getAddress();
-    // Guard: prevent accidental placeholder ZarpV2 upgrade on testnets / mainnets unless explicitly forced
+    // Guard: block ZarpV2 upgrades on non-local networks (or when simulateRemote) unless --force is provided
     const guardApplies = (!isLocal || simulateRemote) && targetImplName === 'ZarpV2' && !force;
     if (guardApplies) {
       throw new Error('Blocked: ZarpV2 is currently a placeholder. Refusing to upgrade proxy on non-local network without --force flag.');

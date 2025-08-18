@@ -41,9 +41,16 @@ function keccakHex(hex: string): string {
   try {
     return '0x' + (crypto as any).createHash('keccak256').update(data).digest('hex');
   } catch {
-    // @ts-ignore: require optional dependency if available
-    const { keccak256 } = require('@ethersproject/keccak256');
-    return keccak256(data);
+    try {
+      // @ts-ignore: require optional dependency if available
+      const { keccak256 } = require('@ethersproject/keccak256');
+      return keccak256(data);
+    } catch (e2) {
+      throw new Error(
+        "keccakHex: Neither crypto.createHash('keccak256') nor @ethersproject/keccak256 is available. " +
+          'Please use Node.js v19+ or install @ethersproject/keccak256.',
+      );
+    }
   }
 }
 

@@ -150,7 +150,7 @@ If you are on a local network and intentionally exploring alternate addresses, p
     await tx.wait();
   };
 
-  const newAdminProvided = !!targets.admin;
+  const adminTargetProvided = !!targets.admin;
 
   if (opts.renounceAll) {
     await renounceIf('MINTER_ROLE', true);
@@ -158,9 +158,9 @@ If you are on a local network and intentionally exploring alternate addresses, p
     await renounceIf('UPGRADER_ROLE', true);
     await renounceIf('VERIFIER_ROLE', true);
     await renounceIf('BURNER_ROLE', true);
-    await renounceIf('DEFAULT_ADMIN_ROLE', newAdminProvided);
+    await renounceIf('DEFAULT_ADMIN_ROLE', adminTargetProvided);
   } else if (opts.renounceAdminOnly) {
-    await renounceIf('DEFAULT_ADMIN_ROLE', newAdminProvided);
+    await renounceIf('DEFAULT_ADMIN_ROLE', adminTargetProvided);
   }
 
   if (opts.summary !== false) {

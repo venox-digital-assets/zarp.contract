@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import type { Zarp } from '../typechain-types/contracts/Zarp';
 import { writeArchive } from './archiveUtil';
+import { DISALLOWED_NETWORKS } from './constants';
 
 /*
 Hardhat task: zarp:flow
@@ -41,7 +42,6 @@ task('zarp:flow', 'Demonstrate verify -> mint -> transfer -> burn flow (auto-res
       args as any;
     const { ethers, network } = hre;
 
-    const DISALLOWED_NETWORKS = new Set(['mainnet', 'polygon', 'polygonMainnet', 'base', 'gnosis']);
     if (DISALLOWED_NETWORKS.has(network.name)) {
       throw new Error(`zarp:flow is restricted to local/test networks. Refusing to run on ${network.name}.`);
     }

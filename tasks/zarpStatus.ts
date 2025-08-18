@@ -82,11 +82,26 @@ task('zarp:status', 'Report token metadata, canonical alignment, and role holdin
 
     let token: any = null;
     if (hasCode) {
-      // Try V2 first for version()
+      // Robust version detection: attach as Zarp, then probe version(); if present & callable, optionally reattach as ZarpV2
       try {
-        token = await ethers.getContractAt('ZarpV2', proxy);
-      } catch {
         token = await ethers.getContractAt('Zarp', proxy);
+      } catch {}
+      if (token && typeof token.version === 'function') {
+        try {
+          await token.version();
+          // version() exists and is callable; reattach to ZarpV2 for full ABI support
+          try {
+            token = await ethers.getContractAt('ZarpV2', proxy);
+          } catch {}
+        } catch {}
+      }
+      if (!token) {
+        // Fallback to ZarpV2 then Zarp
+        try {
+          token = await ethers.getContractAt('ZarpV2', proxy);
+        } catch {
+          token = await ethers.getContractAt('Zarp', proxy);
+        }
       }
     }
 

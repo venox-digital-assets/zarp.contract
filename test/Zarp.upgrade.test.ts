@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers, upgrades } from 'hardhat';
 import { CANONICAL_PROXY_LOCAL } from '../scripts/lib/deployShared';
+import { isCanonicalAddressEqual } from './helpers';
 import type { Zarp as ZarpType } from '../typechain-types';
 import type { ZarpV2 as ZarpV2Type } from '../typechain-types/contracts/ZarpV2';
 
