@@ -29,3 +29,9 @@ install-state.gz
 # OpenZeppelin
 .openzeppelin/dev-*.json
 .openzeppelin/.session
+
+# Local deployment & archive noise (treat as transient; do not commit)
+deployments/localhost.zarp.json
+deployments/hardhat.zarp.json
+deployments/records/localhost/
+deployments/records/hardhat/

@@ -1,0 +1,13 @@
+# Build artifacts
+artifacts
+cache
+coverage
+coverage.json
+typechain-types
+node_modules
+.deployments
+.deploy
+# Logs
+*.log
+# Generated Solana test ledger data
+solana/test-ledger
