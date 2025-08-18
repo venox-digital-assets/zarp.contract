@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers, upgrades } from 'hardhat';
 import { CANONICAL_PROXY_LOCAL } from '../scripts/lib/deployShared';
-import { isCanonicalAddressEqual } from './helpers';
+import { isCanonicalAddressEqual, deployProxyFromFactoryTyped, upgradeProxyTyped } from './helpers';
 import type { Zarp as ZarpType } from '../typechain-types';
 import type { ZarpV2 as ZarpV2Type } from '../typechain-types/contracts/ZarpV2';
 
@@ -15,7 +15,7 @@ describe('Zarp Upgrade Path', () => {
   async function deployProxyV1() {
     const [deployer, user, verifier, minter, upgrader] = await ethers.getSigners();
     const Zarp = await ethers.getContractFactory('Zarp');
-    const proxy = (await upgrades.deployProxy(Zarp)) as unknown as ZarpType;
+    const proxy = await deployProxyFromFactoryTyped<ZarpType>(Zarp);
     await proxy.waitForDeployment();
 
     await proxy.grantRole(await proxy.VERIFIER_ROLE(), verifier.address);
@@ -45,7 +45,7 @@ describe('Zarp Upgrade Path', () => {
     const implBefore = await upgrades.erc1967.getImplementationAddress(await proxy.getAddress());
 
     const ZarpV2 = await ethers.getContractFactory('ZarpV2');
-    const upgraded = (await upgrades.upgradeProxy(proxyAddr, ZarpV2)) as unknown as ZarpV2Type;
+    const upgraded = await upgradeProxyTyped<ZarpV2Type>(proxyAddr, ZarpV2);
     await upgraded.waitForDeployment();
     const implAfter = await upgrades.erc1967.getImplementationAddress(await upgraded.getAddress());
     const proxyAfter = await upgraded.getAddress();

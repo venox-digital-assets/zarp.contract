@@ -1,7 +1,8 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
-import { ethers, upgrades } from 'hardhat';
+import { ethers } from 'hardhat';
 import type { Zarp as ZarpType } from '../typechain-types';
+import { deployProxyFromFactoryTyped } from './helpers';
 
 describe('Zarp', function () {
   // We define a fixture to reuse the same setup in every test.
@@ -13,8 +14,9 @@ describe('Zarp', function () {
 
     const Zarp = await ethers.getContractFactory('Zarp');
     // const zarp = await Zarp.deploy();
-    const zarp = (await upgrades.deployProxy(Zarp)) as unknown as ZarpType;
+    const zarp = await deployProxyFromFactoryTyped<ZarpType>(Zarp);
 
+    // waitForDeployment handled in helper, but safe if called again
     await zarp.waitForDeployment();
     await zarp.grantRole(await zarp.MINTER_ROLE(), minter.address);
     await zarp.grantRole(await zarp.PAUSER_ROLE(), pauser.address);
