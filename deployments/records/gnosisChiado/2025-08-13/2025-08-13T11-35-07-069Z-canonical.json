@@ -1,0 +1,7 @@
+{
+  "network": "gnosisChiado",
+  "chainId": 10200,
+  "expected": "0xb755506531786C8aC63B756BaB1ac387bACB0C04",
+  "hasCode": true,
+  "expectedCanonicalMatch": true
+}

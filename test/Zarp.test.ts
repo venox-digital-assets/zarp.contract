@@ -1,6 +1,8 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
-import { ethers, upgrades } from 'hardhat';
+import { ethers } from 'hardhat';
+import type { Zarp as ZarpType } from '../typechain-types';
+import { deployProxyFromFactoryTyped } from './helpers';
 
 describe('Zarp', function () {
   // We define a fixture to reuse the same setup in every test.
@@ -12,9 +14,10 @@ describe('Zarp', function () {
 
     const Zarp = await ethers.getContractFactory('Zarp');
     // const zarp = await Zarp.deploy();
-    const zarp = await upgrades.deployProxy(Zarp);
+    const zarp = await deployProxyFromFactoryTyped<ZarpType>(Zarp);
 
-    await zarp.deployed();
+    // waitForDeployment handled in helper, but safe if called again
+    await zarp.waitForDeployment();
     await zarp.grantRole(await zarp.MINTER_ROLE(), minter.address);
     await zarp.grantRole(await zarp.PAUSER_ROLE(), pauser.address);
     await zarp.grantRole(await zarp.UPGRADER_ROLE(), upgrader.address);
@@ -92,17 +95,17 @@ describe('Zarp', function () {
       const asVerifier = zarp.connect(verifier);
       await asVerifier.verify(random.address);
       const asMinter = zarp.connect(minter);
-      await asMinter.mint(random.address, 1000);
-      expect(await zarp.totalSupply()).to.equal(1000);
-      expect(await zarp.balanceOf(random.address)).to.equal(1000);
+      await asMinter.mint(random.address, 1000n);
+      expect(await zarp.totalSupply()).to.equal(1000n);
+      expect(await zarp.balanceOf(random.address)).to.equal(1000n);
     });
     it('Should appropriately increase totalSupply after minting', async () => {
       const { zarp, minter, verified } = await loadFixture(deployZarpFixture);
       const asMinter = zarp.connect(minter);
-      await asMinter.mint(verified.address, 1000);
-      expect(await zarp.totalSupply()).to.equal(1000);
-      await asMinter.mint(verified.address, 1000);
-      expect(await zarp.totalSupply()).to.equal(2000);
+      await asMinter.mint(verified.address, 1000n);
+      expect(await zarp.totalSupply()).to.equal(1000n);
+      await asMinter.mint(verified.address, 1000n);
+      expect(await zarp.totalSupply()).to.equal(2000n);
     });
     it('Should emit event on verify', async () => {
       const { zarp, verifier, random } = await loadFixture(deployZarpFixture);
@@ -125,21 +128,21 @@ describe('Zarp', function () {
     it('Should not allow burning without BURNER_ROLE role', async () => {
       const { zarp, minter, verified } = await loadFixture(deployZarpFixture);
       const asMinter = zarp.connect(minter);
-      await asMinter.mint(verified.address, 1000);
+      await asMinter.mint(verified.address, 1000n);
       const asVerified = zarp.connect(verified);
-      await expect(asVerified.burn(10)).to.be.reverted;
-      expect(await zarp.balanceOf(verified.address)).to.equal(1000);
+      await expect(asVerified.burn(10n)).to.be.reverted;
+      expect(await zarp.balanceOf(verified.address)).to.equal(1000n);
     });
     it('Should transfer to BURNER_ROLE as verified, and burn successfully', async () => {
       const { zarp, minter, verified, burner } = await loadFixture(deployZarpFixture);
       const asMinter = zarp.connect(minter);
-      await asMinter.mint(verified.address, 1000);
+      await asMinter.mint(verified.address, 1000n);
       const asVerified = zarp.connect(verified);
-      await asVerified.transfer(burner.address, 50);
+      await asVerified.transfer(burner.address, 50n);
       const asBurner = zarp.connect(burner);
-      await asBurner.burn(30);
-      expect(await zarp.balanceOf(verified.address)).to.equal(950);
-      expect(await zarp.balanceOf(burner.address)).to.equal(20);
+      await asBurner.burn(30n);
+      expect(await zarp.balanceOf(verified.address)).to.equal(950n);
+      expect(await zarp.balanceOf(burner.address)).to.equal(20n);
     });
   });
 });

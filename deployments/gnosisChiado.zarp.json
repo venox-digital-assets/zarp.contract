@@ -1,0 +1,9 @@
+{
+  "network": "gnosisChiado",
+  "proxy": "0xb755506531786C8aC63B756BaB1ac387bACB0C04",
+  "implementation": "0xe6695C23592E84Ef37DE8b31F24a020Af82030e4",
+  "deployer": "0xfA4EB9AA068B3b64348f42b142E270f28E2f86EB",
+  "timestamp": "2025-08-13T11:32:04.031Z",
+  "granted": {},
+  "renounced": false
+}

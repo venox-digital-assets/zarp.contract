@@ -1,0 +1,16 @@
+# Build artifacts
+artifacts
+cache
+coverage
+coverage.json
+typechain-types
+node_modules
+.deployments
+.deploy
+# Generated deploy records & metadata (do not format)
+deployments
+public/sol-metadata.json
+# Logs
+*.log
+# Generated Solana test ledger data
+solana/test-ledger

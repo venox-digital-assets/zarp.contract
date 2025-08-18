@@ -1,0 +1,35 @@
+{
+  "network": "mainnet",
+  "chainId": 1,
+  "forked": false,
+  "expectedCanonical": "0xb755506531786C8aC63B756BaB1ac387bACB0C04",
+  "proxyResolved": "0xb755506531786C8aC63B756BaB1ac387bACB0C04",
+  "deploymentState": "deployed",
+  "hasCode": true,
+  "expectedCanonicalMatch": true,
+  "metadata": {
+    "symbol": "ZARP",
+    "name": "ZARP Stablecoin",
+    "totalSupply": "41526590832708870006102530",
+    "version": null
+  },
+  "roles": [
+    "DEFAULT_ADMIN_ROLE",
+    "MINTER_ROLE",
+    "PAUSER_ROLE",
+    "UPGRADER_ROLE",
+    "VERIFIER_ROLE",
+    "BURNER_ROLE"
+  ],
+  "addresses": [
+    {
+      "address": "0xfA4EB9AA068B3b64348f42b142E270f28E2f86EB",
+      "DEFAULT_ADMIN_ROLE": false,
+      "MINTER_ROLE": false,
+      "PAUSER_ROLE": false,
+      "UPGRADER_ROLE": false,
+      "VERIFIER_ROLE": false,
+      "BURNER_ROLE": false
+    }
+  ]
+}

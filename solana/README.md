@@ -1,76 +1,214 @@
-# Solana
+# Solana SPL Token Utility
 
-The Solana version of ZARP is created using the SPL Token Program CLI (with some of the Token-2020 program extrensions).This is wrapped into the Makefile:
+## Version History 🕰️
 
-## Install
+This directory now manages **Version 2** of the ZARP Solana SPL token. We migrated from **Version 1**, which shipped with two mandatory extensions:
 
-Install Local Dev Solana Environment from here: <https://docs.solana.com/getstarted/local>
-Then also create a wallet and airdrop as per the instructions above. Something like:
+- **Default Account State**: new accounts were always initialized with a default state, with the idea that this would help in future to mimic our 'validated' feature on EVM. However, it was incredibly limited in practice, and impossible to disable.
+- **Confidential Transfers**: on-chain encryption of transfer amounts for privacy, but impossible to disable.
+
+These two extensions severely limited the defi protocols that would accept ZARP. So for V2 we removed both of them.
+
+### Version 2 Highlights 🚀
+
+- Minimal essential extensions enabled where needed (metadata, freeze, close)
+
+## Deployed Addresses 📦
+
+| Version | Network | Address                                                                                                                                                    |
+| ------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| v1      | Mainnet | [8v8aBHR7EXFZDwaqaRjAStEcmCj6VZi5iGq1YDtyTok6](https://solana.fm/address/8v8aBHR7EXFZDwaqaRjAStEcmCj6VZi5iGq1YDtyTok6/transactions?cluster=mainnet-alpha)  |
+| v2      | Devnet  | [FNijoBcYNp1U9xXDcZRkEbX6vNV24BamDQBhkRTCzLRP](https://solana.fm/address/FNijoBcYNp1U9xXDcZRkEbX6vNV24BamDQBhkRTCzLRP/transactions?cluster=devnet-alpha)   |
+| v2      | Testnet | [8Rb9pcgbAaSVwgJxFBpvFDoD3ZGkWDFDMfuDbVKkycmu](https://solana.fm/address/8Rb9pcgbAaSVwgJxFBpvFDoD3ZGkWDFDMfuDbVKkycmu/transactions?cluster=testnet-solana) |
+| v2      | Mainnet | [dngKhBQM3BGvsDHKhrLnjvRKfY5Q7gEnYGToj9Lk8rk](https://solana.fm/address/dngKhBQM3BGvsDHKhrLnjvRKfY5Q7gEnYGToj9Lk8rk?cluster=mainnet-alpha)                 |
+
+This directory uses a `Makefile` to create and manage a ZARP SPL token on a local or Devnet Solana cluster.
+
+## Table of Contents
+
+- [Solana SPL Token Utility](#solana-spl-token-utility)
+  - [Version History 🕰️](#version-history-️)
+    - [Version 2 Highlights 🚀](#version-2-highlights-)
+  - [Deployed Addresses 📦](#deployed-addresses-)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites 🔧](#prerequisites-)
+  - [Local Development 🚀](#local-development-)
+  - [Devnet 🌐](#devnet-)
+  - [Network Targets 🛠️](#network-targets-️)
+  - [Best Practices](#best-practices)
+    - [Example SPL-Token Workflow](#example-spl-token-workflow)
+  - [Known Issues](#known-issues)
+
+## Prerequisites 🔧
+
+Follow Solana’s guide to install the local validator and CLI tool:
 
 ```sh
+# Install and configure local validator
 solana config set --url localhost
 solana config get
-solana-keygen new
-solana config set -k ~/.config/solana/id.json
+# Generate a new keypair
+solana-keygen new --outfile ~/.config/solana/id.json
+# Airdrop some SOL for fees
 solana airdrop 2
 solana balance
-solana address 
-# You will need the address later
+# Show solana wallet pubkey / address since you will need it for future steps
+solana address
 ```
 
-## Local
+You will need your wallet address for the environment variables:
 
-To create the token against the local validator:
+```bash
+export MINT_AND_BURN_ADDRESS=<your_wallet_pubkey>
+export DEPLOYER_ADDRESS=<your_wallet_pubkey>
+export OWNER_ADDRESS=<your_wallet_pubkey>
+```
 
-```sh
-# Run the local test chain:
-make local-sol
+Run `make help` for a fun list of available actions!
 
-# In seperate terminal, ensure we're pointing to the local validator and create the token:
-solana config set --url localhost
-# Replace the address below with the local address from `solana address`
-export MINT_AND_BURN_ADDRESS=0x0
+```
+make help
+```
+
+## Local Development 🚀
+
+Spin up your sandbox and create tokens in just a few steps:
+
+1. Launch the local validator:
+
+   ```bash
+   make local-sol
+   ```
+
+   (If you need a fresh start, use `make reset-local-sol`.)
+
+2. In a new shell, point your CLI at localhost and export wallets:
+
+   ```bash
+   solana config set --url localhost
+   export MINT_AND_BURN_ADDRESS=$(solana address)
+   export DEPLOYER_ADDRESS=$(solana address)
+   export OWNER_ADDRESS=$(solana address)
+   ```
+
+3. Create & configure a new ZARP token:
+
+   ```bash
+   make create-token
+   ```
+
+4. Inspect your shiny new token:
+   ```bash
+   cat .create-token/token_address.txt      # Mint address
+   tail -n +1 .create-token/create-token-output.log  # Full logs
+   ```
+
+## Devnet 🌐
+
+Switch to Devnet, airdrop some SOL, and reuse the same workflow:
+
+```bash
+make set-devnet
+solana airdrop 1
+export MINT_AND_BURN_ADDRESS=$(solana address)
+export DEPLOYER_ADDRESS=$(solana address)
+export OWNER_ADDRESS=$(solana address)
 make create-token
-
-# The created token address is saved in:
-cat .create-token/token_address.txt
-
-# The logs are saved in:
-cat .create-token/create-token-output.log
-
 ```
 
-## Devnet
+## Network Targets 🛠️
 
-This command _should_ airdrop correctly for Devnet, but mine kept failing with error: ``
+The Makefile includes convenient `set-<network>` targets to configure your Solana CLI and recommended wait times for different environments:
+
+- **make set-local**  
+  Points CLI to your local validator at `http://localhost:8899` and sets `WAIT_TIME=0.5`.
+
+- **make set-devnet**  
+  Switches to Devnet (`https://api.devnet.solana.com`) with `WAIT_TIME=1` (you can airdrop SOL).
+
+- **make set-testnet**  
+  Switches to Testnet (`https://api.testnet.solana.com`) with commitment `confirmed` and `WAIT_TIME=5`.
+
+- **make set-mainnet**  
+  Switches to Mainnet-Beta (`https://api.mainnet-beta.solana.com`) with `WAIT_TIME=5`. Make sure you have real SOL and funded accounts (no airdrop).
+
+After running any `set-<network>` target, update your wallet environment variables for that network:
+
+```bash
+export MINT_AND_BURN_ADDRESS=<your_wallet_pubkey>
+export DEPLOYER_ADDRESS=<your_wallet_pubkey>
+export OWNER_ADDRESS=<your_wallet_pubkey>
+solana balance
+```
+
+Then run:
+
+```bash
+make create-token
+```
+
+## Best Practices
+
+We adhere to Solana and SPL-Token CLI best practices when creating and managing SPL tokens:
+
+1. Use the Token-2020 program extensions by specifying the `--program-id` flag.  
+   See https://spl.solana.com/token-2022 for details.
+
+2. Immediately initialize on-chain metadata for your mint:
+
+   ```sh
+   spl-token initialize-metadata <MINT_ADDRESS> <NAME> <SYMBOL> <URI>
+   ```
+
+   Docs: https://spl.solana.com/token#token-metadata
+
+3. Always use Associated Token Accounts instead of raw accounts:
+
+   ```sh
+   spl-token create-account <MINT_ADDRESS>
+   spl-token address --token <MINT_ADDRESS> --owner <OWNER> --verbose
+   ```
+
+   See https://spl.solana.com/token#associated-token-account
+
+4. Transfer all authorities (mint, freeze, metadata, etc.) off the deployer to your designated multisig or governance keys.
+5. Revoke any zero-amount approvals to the deployer ATA.
+
+### Example SPL-Token Workflow
 
 ```sh
-solana config set --url https://api.devnet.solana.com
-solana airdrop 1 --url devnet
+# 1. Create mint
+spl-token --program-id <TOKEN_2020_ID> create-token --decimals 6 --default-account-state initialized \
+  --enable-metadata --enable-freeze --enable-close
 
+# 2. Initialize metadata
+spl-token --program-id <TOKEN_2020_ID> initialize-metadata <MINT_ADDRESS> "<NAME>" "<SYMBOL>" <URI>
+
+# 3. Create Associated Token Account
+spl-token --program-id <TOKEN_2020_ID> create-account <MINT_ADDRESS>
+
+# 4. Approve and transfer authorities
+spl-token --program-id <TOKEN_2020_ID> approve <ATA> 0 <DEPLOYER_ATA>
+spl-token --program-id <TOKEN_2020_ID> authorize <MINT_ADDRESS> mint <MINT_AND_BURN_AUTHORITY>
+spl-token --program-id <TOKEN_2020_ID> authorize <MINT_ADDRESS> freeze <MINT_AND_BURN_AUTHORITY>
+# ... other authorize commands ...
+spl-token --program-id <TOKEN_2020_ID> revoke <DEPLOYER_ATA>
+
+# 5. Mint tokens
+spl-token --program-id <TOKEN_2020_ID> mint <MINT_ADDRESS> 100000
+
+# 6. Display mint
+spl-token --program-id <TOKEN_2020_ID> display <MINT_ADDRESS>
 ```
 
-## Known issues
+## Known Issues
 
-- If you want to use a Hardware wallet via WSL2, you need to attach it using: https://learn.microsoft.com/en-us/windows/wsl/connect-usb 
-
-Windows Terminal (Administrator)
-```sh
-usbipd list
-usbipd bind --busid <busid>
-usbipd attach --wsl --busid <busid>
-```
-
-WSL2 (Ubuntu):
-```sh
-lsusb
-```
-
-
-- Sometimes `solana-test-validator` fails to start after install if you don't have bzip2: `sudo apt-get install bzip2`, or check the logs: `tail ./test-ledger/validator.log`
-
-Fauceting on Devnet was actually a nightmare. Kept failing on all Web faucets as well. Finally one of the following worked:
-
-- <https://faucet.solana.com/>
-- <https://faucet.quicknode.com/solana/devnet>
-
+- Hardware wallets in WSL2 require USB passthrough: see Microsoft’s [WSL2 USB guide](https://learn.microsoft.com/windows/wsl/connect-usb).
+- If `solana-test-validator` fails, install `bzip2` or check logs:
+  ```sh
+  sudo apt-get install bzip2
+  tail test-ledger/validator.log
+  ```
+- Devnet faucets can be unreliable; try:
+  - https://faucet.solana.com/
+  - https://faucet.quicknode.com/solana/devnet

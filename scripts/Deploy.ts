@@ -1,22 +1,21 @@
-import { ethers, upgrades, defender } from 'hardhat';
+import { ethers } from 'hardhat';
+import minimist from 'minimist';
+import { deployAndConfigure } from './lib/deployShared';
 
-const ZARP_REPO_URL = 'https://github.com/venox-digital-assets/zarp.contract';
-
-// First-time deployment of ZARP on a chain. Deploys implementation and proxy
 async function main() {
-  const [deployer] = await ethers.getSigners();
-
-  console.log('Deploying contracts with the account:', deployer.address);
-
-  console.log('Account balance:', (await deployer.getBalance()).toString());
-
-  const Token = await ethers.getContractFactory('Zarp');
-  const token = await upgrades.deployProxy(Token);
-
-  console.log('Token address:', token.address);
-  console.log('Token symbol:', await token.symbol());
-  console.log('Token name:', await token.name());
-  console.log('Token total supply:', await token.totalSupply());
+  // Parse CLI args for role assignments (legacy interface retained)
+  const args = minimist(process.argv.slice(2));
+  const targets = {
+    admin: args.admin as string | undefined,
+    minter: args.minter as string | undefined,
+    pauser: args.pauser as string | undefined,
+    upgrader: args.upgrader as string | undefined,
+    verifier: args.verifier as string | undefined,
+    burner: args.burner as string | undefined,
+  };
+  const renounceAll: boolean = Boolean(args['renounce-deployer-roles'] || args.renounce);
+  const renounceAdmin: boolean = Boolean(args['renounce-admin']);
+  await deployAndConfigure((ethers as any).hre || (require('hardhat') as any), targets, { renounceAll, renounceAdminOnly: renounceAdmin });
 }
 
 // We recommend this pattern to be able to use async/await everywhere

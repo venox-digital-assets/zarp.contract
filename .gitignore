@@ -8,9 +8,30 @@ typechain-types
 # Hardhat files
 cache
 artifacts
+build/
+coverage/
+coverage.json
+.hardhat/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Our logs
 .create-token
 
 # Solana Local Validator
 test-ledger
+
+# Yarn
+install-state.gz
+
+# OpenZeppelin
+.openzeppelin/dev-*.json
+.openzeppelin/.session
+
+# Local deployment & archive noise (treat as transient; do not commit)
+deployments/localhost.zarp.json
+deployments/hardhat.zarp.json
+deployments/records/localhost/
+deployments/records/hardhat/
