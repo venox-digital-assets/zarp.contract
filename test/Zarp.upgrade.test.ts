@@ -34,7 +34,7 @@ describe('Zarp Upgrade Path', () => {
     // Canonical address check is desirable but not strictly required for
     // upgrade safety; keep as a soft assertion (warn if mismatch) to avoid
     // brittle failures due to nonce drift.
-    if (proxyAddr.toLowerCase() !== CANONICAL_PROXY_LOCAL.toLowerCase()) {
+    if (!isCanonicalAddressEqual(proxyAddr, CANONICAL_PROXY_LOCAL)) {
       console.warn(
         `WARN: Deployed proxy ${proxyAddr} differs from CANONICAL_PROXY_LOCAL ${CANONICAL_PROXY_LOCAL}; proceeding with upgrade assertions.`,
       );
