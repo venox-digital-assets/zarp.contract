@@ -1,14 +1,36 @@
 import { task } from 'hardhat/config';
 // Use global fetch (Node 18+ / Hardhat runtime). No external dependency required.
 
+export function explorerRequest(configuredApiURL: string, chainId: number, apiKey: string) {
+  const isBlockscout = /blockscout/i.test(configuredApiURL);
+  const apiURL = isBlockscout ? configuredApiURL : 'https://api.etherscan.io/v2/api';
+  const params = new URLSearchParams({
+    module: 'account',
+    action: 'balance',
+    address: '0x0000000000000000000000000000000000000000',
+    tag: 'latest',
+    apikey: apiKey,
+  });
+  if (!isBlockscout) params.set('chainid', String(chainId));
+  return { apiURL, apiVersion: isBlockscout ? 'blockscout' : 'v2', isBlockscout, url: `${apiURL}?${params}` };
+}
+
+export function explorerResponseAccepted(isBlockscout: boolean, httpOk: boolean, raw: any): boolean {
+  if (!httpOk || !raw || typeof raw !== 'object') return false;
+  const lower = JSON.stringify(raw).toLowerCase();
+  const explicitError = lower.includes('invalid') || lower.includes('error') || raw.message === 'NOTOK';
+  const accepted = isBlockscout ? raw.status === undefined || raw.status === '1' : raw.status === '1';
+  return accepted && !explicitError;
+}
+
 /*
 Task: zarp:explorer-ping
 Purpose: Lightweight validation that a supplied explorer API key (Etherscan-compatible or Blockscout) is accepted
 by the remote service before attempting a full contract verification.
 
 Approach:
-- Uses the network specified (e.g. --network gnosisChiado) to choose the correct API base URL from the configured
-  etherscan.customChains or built-in mapping.
+- Uses Etherscan API V2 with the current chain ID for Etherscan-family explorers.
+- Retains the configured custom-chain endpoint for Blockscout networks.
 - Sends a trivial module=account action=balance request for the zero address (harmless) including the API key.
 - Evaluates HTTP + JSON response for typical success vs invalid key indicators.
 
@@ -27,9 +49,14 @@ Limitations:
 task('zarp:explorer-ping', 'Validate configured explorer API key for current network')
   .addFlag('json', 'Emit JSON only')
   .setAction(async (args, hre) => {
-    const { network, config } = hre;
+    const { network, config, ethers } = hre;
     const jsonOnly = !!args.json;
     const name = network.name;
+
+    let chainId = network.config.chainId as number | undefined;
+    if (chainId === undefined) {
+      chainId = Number((await ethers.provider.getNetwork()).chainId);
+    }
 
     // Resolve API key based on etherscan.apiKey mapping in config
     const apiKeyConfig: any = config.etherscan?.apiKey || {};
@@ -41,13 +68,13 @@ task('zarp:explorer-ping', 'Validate configured explorer API key for current net
     if (!entry) {
       throw new Error(`No customChains entry found for network ${name}; cannot determine explorer API URL.`);
     }
-    const apiURL: string = entry.urls.apiURL;
+    const configuredApiURL: string = entry.urls.apiURL;
 
     if (!apiKey) {
       throw new Error(`No API key configured for network ${name} (env missing?).`);
     }
 
-    const url = `${apiURL}?module=account&action=balance&address=0x0000000000000000000000000000000000000000&tag=latest&apikey=${apiKey}`;
+    const { apiURL, apiVersion, isBlockscout, url } = explorerRequest(configuredApiURL, chainId, apiKey);
 
     let httpStatus: number | undefined;
     let apiMessage: string | undefined;
@@ -59,24 +86,14 @@ task('zarp:explorer-ping', 'Validate configured explorer API key for current net
       raw = await res.json().catch(() => undefined);
       if (raw && typeof raw === 'object') {
         apiMessage = raw.message || raw.status || raw.result || undefined;
-        // Etherscan style: { status: '1', message: 'OK', result: '...' }
-        // Blockscout style may omit status/message; treat absence of explicit error as ok if HTTP 200.
-        const lower = JSON.stringify(raw).toLowerCase();
-        if (res.ok && !lower.includes('invalid') && !lower.includes('error')) {
-          status = 'ok';
-        }
-        if (lower.includes('invalid') || lower.includes('error')) {
-          status = 'error';
-        }
-      } else if (res.ok) {
-        status = 'ok';
+        if (explorerResponseAccepted(isBlockscout, res.ok, raw)) status = 'ok';
       }
     } catch (e: any) {
       apiMessage = e.message;
       status = 'error';
     }
 
-    const report = { network: name, apiURL, status, httpStatus, apiMessage, raw };
+    const report = { network: name, chainId, apiVersion, apiURL, status, httpStatus, apiMessage, raw };
     if (jsonOnly) {
       console.log(JSON.stringify(report));
     } else {
