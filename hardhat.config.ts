@@ -24,6 +24,8 @@ import './tasks/implSlot';
 import './tasks/multiAudit';
 import './tasks/signMessage';
 import './tasks/auditAdmins';
+import './tasks/roleCensus';
+import './tasks/transferRoles';
 
 const { ALCHEMY_API_KEY, DEPLOYER_PRIVATE_KEY, ETHERSCAN_API_KEY, MULTICHAIN_ETHERSCAN_API_KEY, DEFENDER_API_KEY, DEFENDER_SECRET } =
   process.env;

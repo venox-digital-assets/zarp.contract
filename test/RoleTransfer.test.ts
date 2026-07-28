@@ -5,9 +5,11 @@ import type { Zarp as ZarpType } from '../typechain-types';
 import { deployProxyFromFactoryTyped } from './helpers';
 import { ROLE_NAMES, censusRoles, executeRoleTransfer, planRoleTransfer } from '../tasks/roleLib';
 
-const A = '0xAAaAaAAAAaaAAaaAaaaAAAAAaaAAAaAAaAAAAAaA';
-const B = '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB';
-const C = '0xCcCCCcccCCCCcCCCCCCcCcCccCcCCCcCcccccccC';
+// Checksummed at definition: planRoleTransfer returns EIP-55 addresses, so the
+// fixtures must be comparable to its output.
+const A = ethers.getAddress('0x' + 'aa'.repeat(20));
+const B = ethers.getAddress('0x' + 'bb'.repeat(20));
+const C = ethers.getAddress('0x' + 'cc'.repeat(20));
 
 /*
  * Handing over an AccessControl deployment is order-sensitive and irreversible.
@@ -16,8 +18,7 @@ const C = '0xCcCCCcccCCCCcCCCCCCcCcCccCcCCCcCcccccccC';
  * ordering and the guards that stop a plan from bricking the contract.
  */
 describe('roleLib.planRoleTransfer', function () {
-  const allHeldBy = (addr: string) =>
-    Object.fromEntries(ROLE_NAMES.map(r => [r, [addr]])) as Record<(typeof ROLE_NAMES)[number], string[]>;
+  const allHeldBy = (addr: string) => Object.fromEntries(ROLE_NAMES.map(r => [r, [addr]])) as Record<(typeof ROLE_NAMES)[number], string[]>;
 
   it('grants every held role to the new holder before revoking anything', function () {
     const plan = planRoleTransfer({ currentHolders: allHeldBy(A), from: A, to: B, signer: A });
@@ -103,9 +104,7 @@ describe('roleLib.planRoleTransfer', function () {
   });
 
   it('rejects a transfer to the zero address', function () {
-    expect(() => planRoleTransfer({ currentHolders: allHeldBy(A), from: A, to: ethers.ZeroAddress, signer: A })).to.throw(
-      /zero address/i,
-    );
+    expect(() => planRoleTransfer({ currentHolders: allHeldBy(A), from: A, to: ethers.ZeroAddress, signer: A })).to.throw(/zero address/i);
   });
 
   it('rejects a transfer where source and destination are the same account', function () {
@@ -153,7 +152,12 @@ describe('roleLib.executeRoleTransfer', function () {
     const { zarp, deployer, safe } = await loadFixture(deployFixture);
     const proxy = await zarp.getAddress();
     const before = await censusRoles(zarp as any, ethers.provider, { proxy, fromBlock: 0 });
-    const plan = planRoleTransfer({ currentHolders: before.currentHolders, from: deployer.address, to: safe.address, signer: deployer.address });
+    const plan = planRoleTransfer({
+      currentHolders: before.currentHolders,
+      from: deployer.address,
+      to: safe.address,
+      signer: deployer.address,
+    });
 
     const result = await executeRoleTransfer(zarp as any, plan, { execute: true });
     expect(result.executed).to.be.true;
@@ -169,7 +173,12 @@ describe('roleLib.executeRoleTransfer', function () {
     const { zarp, deployer, safe, other } = await loadFixture(deployFixture);
     const proxy = await zarp.getAddress();
     const before = await censusRoles(zarp as any, ethers.provider, { proxy, fromBlock: 0 });
-    const plan = planRoleTransfer({ currentHolders: before.currentHolders, from: deployer.address, to: safe.address, signer: deployer.address });
+    const plan = planRoleTransfer({
+      currentHolders: before.currentHolders,
+      from: deployer.address,
+      to: safe.address,
+      signer: deployer.address,
+    });
     await executeRoleTransfer(zarp as any, plan, { execute: true });
 
     // the new admin can still hand MINTER_ROLE onward (e.g. to a yield contract)
@@ -189,7 +198,12 @@ describe('roleLib.executeRoleTransfer', function () {
     );
 
     const after = await censusRoles(zarp as any, ethers.provider, { proxy, fromBlock: 0 });
-    const rerun = planRoleTransfer({ currentHolders: after.currentHolders, from: deployer.address, to: safe.address, signer: deployer.address });
+    const rerun = planRoleTransfer({
+      currentHolders: after.currentHolders,
+      from: deployer.address,
+      to: safe.address,
+      signer: deployer.address,
+    });
 
     expect(rerun.steps).to.be.empty;
   });
