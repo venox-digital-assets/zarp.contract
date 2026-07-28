@@ -201,6 +201,21 @@ Smoke checks:
 
 - End-to-end flow with `zarp:flow` on localhost or a throwaway fork to exercise verifier → verified mapping → mint → transfer → burn.
 
+#### Who holds which role? (`zarp:role-census`)
+
+`zarp:status` and `zarp:audit-admins` both answer a narrower question than they appear to: they check roles for addresses **you already supply**, and `zarp:audit-admins` covers `DEFAULT_ADMIN_ROLE` only. Neither can discover a holder you did not think to ask about — an address granted `MINTER_ROLE` after deployment is invisible to both.
+
+The cause is structural: `Zarp` inherits `AccessControlUpgradeable`, not `AccessControlEnumerableUpgradeable`, so there is no on-chain membership list to read. The only complete method is to replay `RoleGranted`/`RoleRevoked` from the proxy's creation block and re-confirm each candidate with `hasRole`. That is what `zarp:role-census` does:
+
+```sh
+yarn hardhat zarp:role-census --network baseSepolia --pretty
+yarn hardhat zarp:role-census --network base --json --archive
+```
+
+Use this — not `zarp:audit-admins` — whenever the question is "who can do what on this chain". It also reports every currently-verified (KYC'd) address, the role admin for each role, and the proxy's upgrade history.
+
+Flags: `--proxy <addr>`, `--from-block <n>` (skip the creation-block search), `--chunk <n>` (shrink the `eth_getLogs` window if your RPC rejects the range), `--json`, `--pretty`, `--archive` (label `role-census`).
+
 ### Upgrades
 
 1. Modify / add new implementation contract (e.g. `ZarpV2.sol`).
@@ -365,13 +380,22 @@ Result JSON includes: `network`, `chainId`, `expected`, `hasCode`, `expectedCano
 
 Goal: Deployer ends with zero privileged roles once governance safes hold them.
 
-Recommended order (after grants & validation via zarp:status):
+**Surrender `DEFAULT_ADMIN_ROLE` LAST, never first.** `revokeRole` requires the caller to still hold the role's admin (`DEFAULT_ADMIN_ROLE` for every Zarp role). Drop admin early and you can no longer revoke anything else — the remaining roles are stranded with their current holders permanently. Self-`renounceRole` happens to skip that check, so an all-self renounce in any order will appear to work; that coincidence does not hold the moment you are removing roles from a third party, so do not rely on it.
 
-1. DEFAULT_ADMIN_ROLE (after confirming another address holds it).
-2. UPGRADER_ROLE (post-upgrade tests & readiness).
-3. MINTER_ROLE (once operational minter is set and tested).
-4. PAUSER_ROLE (keep until confident; or move earlier if emergency process ready).
-5. VERIFIER_ROLE & BURNER_ROLE (after operational automation validated).
+Recommended order (after grants & validation via `zarp:role-census`):
+
+1. UPGRADER_ROLE (post-upgrade tests & readiness).
+2. MINTER_ROLE (once operational minter is set and tested).
+3. PAUSER_ROLE (keep until confident; or move earlier if emergency process ready).
+4. VERIFIER_ROLE & BURNER_ROLE (after operational automation validated).
+5. DEFAULT_ADMIN_ROLE last, and only after confirming another address already holds it.
+
+`zarp:transfer-roles` builds this ordering for you and refuses any plan that would leave nobody holding `DEFAULT_ADMIN_ROLE`. Prefer it over hand-built sequences:
+
+```sh
+# dry run first — nothing is sent without --execute
+yarn hardhat zarp:transfer-roles --network baseSepolia --to 0xGovernanceSafe
+```
 
 How to renounce via Safe (no Defender):
 
@@ -472,6 +496,32 @@ yarn hardhat zarp:upgrade --network localhost --impl ZarpV2
 ```
 
 Flags: `--no-smoke`, `--no-status`, `--json`, `--archive`.
+
+#### zarp:transfer-roles
+
+Move roles from one holder to another (e.g. deployer EOA → governance Safe) in an order that cannot strand a role. **Dry run by default** — nothing is sent without `--execute`.
+
+```sh
+# inspect the plan
+yarn hardhat zarp:transfer-roles --network baseSepolia --to 0xGovernanceSafe
+
+# operational roles only, leaving admin/upgrader in place
+yarn hardhat zarp:transfer-roles --network baseSepolia --to 0xSafe --roles MINTER_ROLE,BURNER_ROLE
+
+# apply, and archive the before/after holder sets
+yarn hardhat zarp:transfer-roles --network baseSepolia --to 0xSafe --execute --archive
+```
+
+Behaviour and guards:
+
+- Grants precede all removals; `DEFAULT_ADMIN_ROLE` is removed last.
+- Removing the signer's own role uses `renounceRole`; a third party's uses `revokeRole`.
+- A role the source does not hold is never granted to the destination — a transfer moves authority, it never creates it.
+- Refuses any plan that would leave **no** `DEFAULT_ADMIN_ROLE` holder.
+- Warns when the destination has no contract code (i.e. an EOA, not a Safe).
+- Re-running after a completed transfer produces an empty plan.
+
+Flags: `--to` (required), `--from` (default: signer), `--roles <csv>`, `--execute`, `--no-grant`, `--no-revoke`, `--proxy`, `--from-block`, `--chunk`, `--json`, `--archive`.
 
 #### zarp:canonical
 

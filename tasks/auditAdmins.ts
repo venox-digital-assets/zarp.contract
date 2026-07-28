@@ -8,6 +8,13 @@ import { writeArchive } from './archiveUtil';
 Hardhat task: zarp:audit-admins
 Purpose: Audit DEFAULT_ADMIN_ROLE holders across multiple networks.
 
+SCOPE WARNING: this covers DEFAULT_ADMIN_ROLE only, and only for addresses it
+already knows (the deployment record's admin/deployer plus any you pass in). It
+cannot discover a holder you did not ask about, and says nothing about MINTER,
+BURNER, VERIFIER, PAUSER or UPGRADER. For "who can do what on this chain", use
+zarp:role-census (tasks/roleCensus.ts), which replays role events and finds
+every holder of every role.
+
 Checks per network:
  - Resolve proxy (deployment record if present else canonical registry)
  - Ensure proxy has code
